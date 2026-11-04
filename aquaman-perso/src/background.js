@@ -3,8 +3,7 @@
 //   - Aquaman (A-Finch13, MIT) nettoyé : plus de relais, plus de télémétrie, plus d'installateur PowerShell ;
 //   - Alertes Marché (src/modules/alertes.js) ;
 //   - Vente auto (src/modules/vente.js).
-// Seules adresses contactées : poseidon-scans.net, et api.github.com uniquement si un jeton GitHub est enregistré
-// (vérification de nouvelle version sur le dépôt privé de Teddy).
+// Seules adresses contactées : poseidon-scans.net, et api.github.com toutes les 6 h (version publiée sur le dépôt de Teddy).
 import { ORIGIN, answer, getSettings, gameStatus } from './lib/aquaman.js';
 import { setBadge, COLORS } from './lib/badge.js';
 import { checkUpdate, RELEASES_URL } from './lib/update.js';
@@ -108,7 +107,7 @@ function startAll() {
 }
 
 chrome.runtime.onInstalled.addListener(async ({ reason, previousVersion }) => {
-  await chrome.storage.local.remove(['update', 'updateCheckedAt', 'adminDevice', 'globalPacks', 'helloAt', 'helloKind', 'helloFor']);
+  await chrome.storage.local.remove(['update', 'updateCheckedAt', 'adminDevice', 'globalPacks', 'helloAt', 'helloKind', 'helloFor', 'githubToken']);
   if (reason === 'update') announceUpdate(previousVersion);
   startAll();
   lookForUpdate(true);

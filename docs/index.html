@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aquaman perso · Installation</title>
+    <meta name="description" content="Installer Aquaman perso : compagnon du jeu de cartes de Poseidon Scans, avec alertes du marché et vente auto des doublons. Sans serveur externe." />
+    <link rel="icon" href="icon128.png" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0b0d;
+        --card: #18181b;
+        --card2: #202024;
+        --line: rgba(255, 255, 255, 0.08);
+        --line2: rgba(255, 255, 255, 0.14);
+        --text: #f4f4f5;
+        --muted: #a1a1aa;
+        --accent: #60a5fa;
+        --blue: #2563eb;
+        --ok: #22c55e;
+        --warn: #fbbf24;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: radial-gradient(1200px 500px at 50% -120px, rgba(37, 99, 235, 0.22), transparent 70%), var(--bg);
+        color: var(--text);
+        font: 16px/1.6 system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      a {
+        color: var(--accent);
+      }
+      code {
+        padding: 1px 6px;
+        border-radius: 6px;
+        background: var(--card2);
+        border: 1px solid var(--line);
+        font-size: 0.88em;
+        overflow-wrap: anywhere;
+      }
+      .wrap {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 48px 16px 64px;
+      }
+      header {
+        text-align: center;
+      }
+      header img {
+        width: 104px;
+        height: 104px;
+        border-radius: 26px;
+        box-shadow: 0 18px 50px rgba(37, 99, 235, 0.35);
+      }
+      .kick {
+        margin-top: 18px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      h1 {
+        margin: 4px 0 10px;
+        font-size: clamp(38px, 8vw, 60px);
+        line-height: 1;
+        font-weight: 900;
+        font-style: italic;
+        text-transform: uppercase;
+      }
+      .lead {
+        max-width: 620px;
+        margin: 0 auto;
+        color: #d4d4d8;
+      }
+      .cta {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 24px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 46px;
+        padding: 0 22px;
+        border-radius: 999px;
+        border: 1px solid var(--line2);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        font-weight: 800;
+        text-decoration: none;
+      }
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .btn.main {
+        background: var(--blue);
+        border-color: transparent;
+      }
+      .btn.main:hover {
+        filter: brightness(1.12);
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 18px;
+      }
+      .chip {
+        padding: 4px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line2);
+        background: var(--card);
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .chip b {
+        color: var(--text);
+      }
+      section {
+        margin-top: 44px;
+      }
+      h2 {
+        margin: 0 0 14px;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      .card {
+        padding: 18px 20px;
+        border-radius: 18px;
+        background: var(--card);
+        border: 1px solid var(--line);
+      }
+      ol.steps {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        counter-reset: s;
+        display: grid;
+        gap: 12px;
+      }
+      ol.steps > li {
+        counter-increment: s;
+        position: relative;
+        padding: 16px 18px 16px 64px;
+        border-radius: 18px;
+        background: var(--card);
+        border: 1px solid var(--line);
+      }
+      ol.steps > li::before {
+        content: counter(s);
+        position: absolute;
+        left: 18px;
+        top: 16px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--blue);
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+      }
+      ol.steps h3 {
+        margin: 2px 0 4px;
+        font-size: 17px;
+      }
+      ol.steps p {
+        margin: 0;
+        color: #d4d4d8;
+      }
+      ol.steps p + p {
+        margin-top: 6px;
+      }
+      .note {
+        margin-top: 10px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-size: 14px;
+      }
+      .note.warn {
+        background: rgba(251, 191, 36, 0.08);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        color: #fde68a;
+      }
+      .note.ok {
+        background: rgba(34, 197, 94, 0.08);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #bbf7d0;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 12px;
+      }
+      .feat {
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: var(--card);
+        border: 1px solid var(--line);
+      }
+      .feat .ic {
+        font-size: 22px;
+      }
+      .feat b {
+        display: block;
+        margin: 4px 0 2px;
+      }
+      .feat span {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .feat.new {
+        border-color: rgba(96, 165, 250, 0.35);
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.14), var(--card) 65%);
+      }
+      details {
+        border-radius: 16px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        padding: 0 18px;
+      }
+      details + details {
+        margin-top: 10px;
+      }
+      summary {
+        cursor: pointer;
+        padding: 14px 0;
+        font-weight: 750;
+      }
+      details p {
+        margin: 0 0 14px;
+        color: #d4d4d8;
+      }
+      footer {
+        margin-top: 48px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      @media (max-width: 520px) {
+        ol.steps > li {
+          padding-left: 18px;
+          padding-top: 58px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <img src="icon128.png" alt="" />
+        <div class="kick">Poseidon Scans · jeu de cartes</div>
+        <h1>Aquaman</h1>
+        <p class="lead">Classement entre amis, boosters rentables, cartes possédées dans les échanges, <b>alertes du marché</b> et <b>vente auto des doublons</b>, le tout dans une seule extension. Aucun serveur externe. Installation : 5 minutes.</p>
+        <div class="cta">
+          <a class="btn main" href="https://github.com/TeddySbot/poseidon/releases/latest/download/aquaman-perso.zip">⬇ Télécharger l’extension</a>
+          <a class="btn" href="https://github.com/TeddySbot/poseidon">Voir le code</a>
+        </div>
+        <div class="chips">
+          <span class="chip"><b>💻 PC</b> · Chrome, Brave, Edge, Opera, Vivaldi</span>
+          <span class="chip">📱 Téléphone : pas encore</span>
+        </div>
+      </header>
+
+      <section>
+        <h2>Installer sur PC</h2>
+        <ol class="steps">
+          <li>
+            <h3>Télécharger</h3>
+            <p>Récupère <a href="https://github.com/TeddySbot/poseidon/releases/latest/download/aquaman-perso.zip"><code>aquaman-perso.zip</code></a> (moins de 200 Ko).</p>
+            <p>Tu as Git ? <code>git clone https://github.com/TeddySbot/poseidon.git</code> : le dossier à charger est alors <code>poseidon/aquaman-perso</code>, et une mise à jour se fait avec <code>git pull</code>.</p>
+          </li>
+          <li>
+            <h3>Extraire</h3>
+            <p>Clic droit sur le fichier → <b>Extraire tout…</b> Range le dossier dans un endroit où il restera, par exemple <b>Documents</b> : l’extension en a besoin pour fonctionner, ne le supprime pas.</p>
+          </li>
+          <li>
+            <h3>Ouvrir la page des extensions</h3>
+            <p>Tape <code>chrome://extensions</code> dans la barre d’adresse (Edge : <code>edge://extensions</code>, Brave : <code>brave://extensions</code>), puis active le <b>Mode développeur</b> en haut à droite.</p>
+          </li>
+          <li>
+            <h3>Charger Aquaman</h3>
+            <p>Clique sur <b>Charger l’extension non empaquetée</b> et choisis le dossier qui contient <code>manifest.json</code>.</p>
+            <p>Épingle l’icône (🧩 puis 📌) : le badge affiche tes boosters à ouvrir et tes alertes.</p>
+          </li>
+          <li>
+            <h3>Ouvrir le jeu</h3>
+            <p>Va sur <a href="https://poseidon-scans.net/jeu">poseidon-scans.net/jeu</a> et connecte-toi : la visite guidée démarre toute seule.</p>
+          </li>
+        </ol>
+        <div class="note ok"><b>Comment savoir que ça marche ?</b> Un onglet <b>Plus</b> apparaît à droite de <b>Marché</b>, et la fenêtre de l’extension a trois onglets : Accueil, Alertes, Vente auto. Si rien n’apparaît, recharge la page du jeu.</div>
+        <div class="note warn">Si tu as déjà l’Aquaman d’origine, retire-le d’abord dans <code>chrome://extensions</code> : les deux en même temps feraient tout en double.</div>
+      </section>
+
+      <section>
+        <h2>Ce que ça ajoute</h2>
+        <div class="grid">
+          <div class="feat new"><div class="ic">🔔</div><b>Alertes Marché</b><span>Une notification Windows dès qu’une carte de ta liste est en vente (prix max, rareté). Elle reste affichée jusqu’à la fin de la vente. Rien n’est acheté à ta place.</span></div>
+          <div class="feat new"><div class="ic">🤖</div><b>Vente auto</b><span>Met en vente tes doublons Communes, Rares et Épiques recherchés, au bon prix, avec un plancher par rareté. Elle démarre en mode Simulation.</span></div>
+          <div class="feat new"><div class="ic">📊</div><b>Statistiques</b><span>Perles rapportées par la vente auto, graphique sur 14 jours, historique, export CSV.</span></div>
+          <div class="feat"><div class="ic">🎁</div><b>Quel booster ouvrir ?</b><span>Taux de drop et prix pour une rareté, un perso, une série ou tes cartes manquantes.</span></div>
+          <div class="feat"><div class="ic">🛡</div><b>Garantie anti-malchance</b><span>Boosters restants avant la SSR (60) et l’UR (190), suivi de la SEC.</span></div>
+          <div class="feat"><div class="ic">🏆</div><b>Classement des amis</b><span>Cartes uniques et séries complètes, toi et tes amis.</span></div>
+          <div class="feat"><div class="ic">🟢</div><b>Échanges</b><span>Pastille verte si tu as déjà la carte, rouge si elle te manque.</span></div>
+          <div class="feat"><div class="ic">🔎</div><b>Qui a cette carte ?</b><span>Détenteurs, vendeurs au marché, et ceux de tes amis qui l’ont.</span></div>
+          <div class="feat"><div class="ic">⭐</div><b>Collection</b><span>Séries favorites, onglet Manquantes, séries les plus avancées, vitrine en glisser-déposer.</span></div>
+          <div class="feat"><div class="ic">💸</div><b>Offres d’une carte</b><span>Les 5 moins chères sur sa page, avec un achat en deux clics (confirmation).</span></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Questions</h2>
+        <details>
+          <summary>Comment se font les mises à jour ?</summary>
+          <p>Toutes les 6 h, l’extension regarde sur GitHub si une nouvelle version existe. Si oui, une notification et un bandeau te préviennent. Rien ne s’installe tout seul : télécharge le nouveau zip, remplace le contenu du dossier, puis clique sur ↻ sous Aquaman dans <code>chrome://extensions</code> (ou <code>git pull</code>, puis ↻). Tes réglages et tes listes sont gardés.</p>
+        </details>
+        <details>
+          <summary>Quelles données sont envoyées ?</summary>
+          <p>Aucune, à personne. L’extension lit le jeu avec ta session sur poseidon-scans.net, comme le site lui-même. Tes listes, statistiques et réglages restent sur ton PC. Le seul autre contact est GitHub, pour lire le numéro de la dernière version. Cette version est l’Aquaman de A‑Finch13 débarrassé de son serveur et de sa télémétrie.</p>
+        </details>
+        <details>
+          <summary>C’est autorisé par le site ?</summary>
+          <p>Les règles de Poseidon Scans interdisent les robots. Les Alertes et la Vente auto font des requêtes automatiques avec ton compte : à utiliser à tes risques, avec une fréquence raisonnable (5 s ou plus pour les alertes, vitesse « Normal » pour la vente auto).</p>
+        </details>
+        <details>
+          <summary>Pourquoi un onglet du site s’ouvre tout seul ?</summary>
+          <p>Le site refuse les ventes envoyées directement par une extension. La Vente auto les envoie donc depuis un onglet épinglé de poseidon-scans.net : laisse-le ouvert pendant qu’elle tourne.</p>
+        </details>
+        <details>
+          <summary>Et sur téléphone ?</summary>
+          <p>Pas pour l’instant : cette version n’existe qu’en extension pour ordinateur. Chrome sur téléphone n’accepte de toute façon pas les extensions.</p>
+        </details>
+        <details>
+          <summary>Comment désinstaller ?</summary>
+          <p>Dans <code>chrome://extensions</code>, clique sur <b>Supprimer</b> sous Aquaman (perso). Rien d’autre n’a été installé sur le PC.</p>
+        </details>
+      </section>
+
+      <footer>
+        Extension non officielle, sans lien avec l’équipe de Poseidon Scans.<br />
+        <a href="https://github.com/TeddySbot/poseidon">Code sur GitHub</a> · <a href="https://github.com/TeddySbot/poseidon/issues">Signaler un problème</a> · Aquaman © 2026 A‑Finch13, licence MIT · Alertes et Vente auto par Teddy
+      </footer>
+    </div>
+  </body>
+</html>

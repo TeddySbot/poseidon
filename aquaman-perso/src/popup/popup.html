@@ -25,7 +25,7 @@
     <section class="pane" id="pane-home">
       <div id="update" class="banner" hidden>
         <p><b>Aquaman perso <span id="update-version"></span> est disponible.</b></p>
-        <p class="muted" style="margin-top: 4px">Dans le dossier de l’extension : <code>git pull</code>, puis ↻ dans <code>chrome://extensions</code>. Ou télécharge le zip :</p>
+        <p class="muted" style="margin-top: 4px">Avec Git : <code>git pull</code>, puis ↻ dans <code>chrome://extensions</code>. Sinon télécharge le nouveau zip, remplace le contenu du dossier, puis ↻.</p>
         <div class="row" style="margin-top: 8px"><button type="button" class="btn main small" data-open="releases">Page des versions</button></div>
       </div>
 
@@ -45,15 +45,11 @@
         <label class="switch"><input type="checkbox" data-setting="notifyUpdated" /> <span>Nouvelle version installée</span></label>
 
         <h2 class="gap">Mises à jour <span class="sp"></span><button type="button" id="checkNow" class="link">Vérifier</button></h2>
-        <p class="muted">Le dépôt est privé : colle un jeton GitHub <b>en lecture seule</b> pour être prévenu des nouvelles versions. Il reste dans ce navigateur et n’est envoyé qu’à GitHub.</p>
-        <div class="row" style="margin-top: 8px">
-          <input id="token" class="field grow" type="password" placeholder="github_pat_…" autocomplete="off" spellcheck="false" />
-          <button type="button" id="tokenSave" class="btn small">OK</button>
-        </div>
+        <p class="muted">Toutes les 6 h, l’extension regarde sur GitHub si une version plus récente existe et te prévient. Rien ne s’installe tout seul.</p>
         <p id="updateInfo" class="muted" style="margin-top: 6px"></p>
 
         <h2 class="gap">Confidentialité</h2>
-        <p class="muted">Aucun serveur externe, aucun partage, aucune installation automatique. Tes données restent dans ce navigateur.</p>
+        <p class="muted">Aucun serveur externe (seulement GitHub pour les versions), aucun partage, aucune installation automatique. Tes données restent dans ce navigateur.</p>
       </div>
     </section>
 

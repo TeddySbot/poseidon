@@ -52,32 +52,20 @@ async function renderStatus() {
 const ago = (t) => (t ? new Date(t).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
 
 async function renderUpdate() {
-  const { githubToken, updateState: st } = await chrome.storage.local.get(['githubToken', 'updateState']);
-  $('#token').placeholder = githubToken ? '•••••••• (jeton enregistré)' : 'github_pat_…';
+  const { updateState: st } = await chrome.storage.local.get('updateState');
   $('#update').hidden = !st?.update;
   if (st?.update) $('#update-version').textContent = st.update.version;
   const info = $('#updateInfo');
   info.style.color = st?.error ? 'var(--bad)' : '';
-  info.textContent = !githubToken
-    ? `Sans jeton, pas de vérification. Dépôt : ${REPO}.`
-    : st?.error
-      ? st.error
-      : st?.checkedAt
-        ? st.update
-          ? `Version ${st.update.version} disponible (vérifié le ${ago(st.checkedAt)}).`
-          : `À jour (vérifié le ${ago(st.checkedAt)}).`
-        : 'Pas encore vérifié.';
+  info.textContent = st?.error
+    ? st.error
+    : st?.checkedAt
+      ? st.update
+        ? `Version ${st.update.version} disponible (vérifié le ${ago(st.checkedAt)}).`
+        : `À jour (vérifié le ${ago(st.checkedAt)}).`
+      : `Pas encore vérifié. Dépôt : ${REPO}.`;
 }
 
-$('#tokenSave').addEventListener('click', async () => {
-  const v = $('#token').value.trim();
-  if (v) await chrome.storage.local.set({ githubToken: v });
-  else await chrome.storage.local.remove(['githubToken', 'updateState']);
-  $('#token').value = '';
-  $('#updateInfo').textContent = v ? 'Vérification…' : 'Jeton retiré.';
-  if (v) await chrome.runtime.sendMessage({ type: 'check-update', force: true }).catch(() => {});
-  renderUpdate();
-});
 $('#checkNow').addEventListener('click', async () => {
   $('#updateInfo').textContent = 'Vérification…';
   await chrome.runtime.sendMessage({ type: 'check-update', force: true }).catch(() => {});

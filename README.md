@@ -7,7 +7,9 @@ Classement entre amis, boosters rentables, alertes du marché, vente auto des do
 Installation : 5 minutes.</p>
 
 > Aquaman perso, c'est l'extension Aquaman de A‑Finch13 (licence MIT) **nettoyée** : plus aucun serveur externe, plus de télémétrie, plus d'installateur sur le PC. On y a ajouté nos deux outils : **Alertes Marché** et **Vente auto**.
-> Elle ne parle qu'à `poseidon-scans.net`, et à `api.github.com` seulement si tu lui donnes un jeton pour vérifier les mises à jour.
+> Elle ne parle qu'à `poseidon-scans.net`, et à `api.github.com` toutes les 6 h pour savoir si une nouvelle version existe.
+>
+> **Page d'installation : https://teddysbot.github.io/poseidon/**
 
 ---
 
@@ -17,7 +19,12 @@ Navigateurs : **Chrome, Brave, Edge, Opera, Vivaldi**. Firefox et les téléphon
 
 ### 1. Récupérer l'extension
 
-**Option A : avec Git (conseillé, les mises à jour se font avec `git pull`)**
+**Option A : avec le zip (le plus simple)**
+
+1. Télécharge [**aquaman-perso.zip**](https://github.com/TeddySbot/poseidon/releases/latest/download/aquaman-perso.zip).
+2. Clic droit → **Extraire tout…**, puis range le dossier dans un endroit où il restera (par exemple `Documents`). L'extension en a besoin pour fonctionner.
+
+**Option B : avec Git (les mises à jour se font avec `git pull`)**
 
 ```bash
 git clone https://github.com/TeddySbot/poseidon.git
@@ -25,10 +32,6 @@ git clone https://github.com/TeddySbot/poseidon.git
 
 Le dossier de l'extension est `poseidon/aquaman-perso`.
 
-**Option B : avec le zip**
-
-1. Ouvre la page [**Releases**](https://github.com/TeddySbot/poseidon/releases/latest) et télécharge `aquaman-perso-<version>.zip`.
-2. Clic droit → **Extraire tout…**, puis range le dossier dans un endroit où il restera (par exemple `Documents`). L'extension en a besoin pour fonctionner.
 
 ### 2. Ouvrir la page des extensions
 
@@ -45,16 +48,9 @@ Clique sur **Charger l'extension non empaquetée** et choisis le dossier **`aqua
 
 Va sur [poseidon-scans.net/jeu](https://poseidon-scans.net/jeu) et connecte-toi. La visite guidée démarre toute seule.
 
-### 5. (Conseillé) Être prévenu des nouvelles versions
+### 5. Mises à jour
 
-Le dépôt est privé, donc l'extension a besoin d'un jeton GitHub **en lecture seule** pour vérifier les versions :
-
-1. GitHub → **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.
-2. **Repository access** : *Only select repositories* → `TeddySbot/poseidon`.
-3. **Permissions** → *Repository permissions* → **Contents : Read-only**. Rien d'autre.
-4. Copie le jeton, ouvre la fenêtre d'Aquaman → **Accueil** → **Mises à jour**, colle-le, puis **OK**.
-
-Le jeton reste dans ton navigateur et n'est envoyé qu'à `api.github.com`. Toutes les 6 h, l'extension compare sa version à celle du dépôt. Si une version plus récente existe, tu reçois une notification. **Rien ne s'installe tout seul.**
+Toutes les 6 h, l'extension regarde sur ce dépôt si une version plus récente existe. Si oui, tu reçois une notification et un bandeau s'affiche dans sa fenêtre. **Rien ne s'installe tout seul** : voir « Comment se font les mises à jour ? » plus bas.
 
 ### Comment savoir que ça marche ?
 
@@ -88,7 +84,7 @@ Le jeton reste dans ton navigateur et n'est envoyé qu'à `api.github.com`. Tout
 Avec Git : `git pull` dans le dossier, puis **↻** sous Aquaman dans `chrome://extensions`. Avec le zip : télécharge le nouveau zip, remplace le contenu du dossier, puis **↻**. Tes réglages et tes listes sont gardés.
 
 **Quelles données sont envoyées ?**
-Aucune, à personne. L'extension lit le jeu avec ta session sur `poseidon-scans.net`, comme le site lui-même. Tout le reste (listes, statistiques, réglages) reste dans `chrome.storage` sur ton PC. Le seul autre contact possible est GitHub, si tu as mis un jeton.
+Aucune, à personne. L'extension lit le jeu avec ta session sur `poseidon-scans.net`, comme le site lui-même. Tout le reste (listes, statistiques, réglages) reste dans `chrome.storage` sur ton PC. Le seul autre contact est GitHub (lecture de la version publiée), sans compte ni jeton.
 
 **C'est autorisé par le site ?**
 Les règles de Poseidon Scans interdisent les robots. Les Alertes (selon la fréquence) et la Vente auto font des requêtes automatiques avec ton compte : **à utiliser à tes risques**, avec une fréquence raisonnable (5 s ou plus pour les alertes, vitesse « Normal » pour la vente auto).
@@ -107,7 +103,7 @@ Le site refuse les ventes envoyées directement par une extension. La Vente auto
 2. Pousse sur `main`.
 3. Le workflow **Release Aquaman** voit la nouvelle version, crée le tag `aquaman-v1.4.1`, construit `aquaman-perso-1.4.1.zip` et publie la release. Si la version n'a pas changé, il ne fait rien.
 
-Les extensions qui ont un jeton voient la nouvelle version dans les 6 h (ou tout de suite avec **Vérifier**).
+Les extensions installées voient la nouvelle version dans les 6 h (ou tout de suite avec **Vérifier**).
 
 ---
 

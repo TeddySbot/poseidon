@@ -31,12 +31,12 @@ Guide d'installation complet : voir le [README du dépôt](../README.md).
 - **Stockage** : chaque outil a ses clés avec un préfixe (`alertes:…`, `vente:…`), pour ne pas écraser celles d'Aquaman (`settings`, `status`…).
 - **Badge** (`src/lib/badge.js`) : par ordre de priorité, carte surveillée en vente (orange), erreur (rouge `!`), boosters à ouvrir (bleu), vente auto (vert = ventes en cours, jaune `SIM`).
 - **Messages** : `alertes:<action>` et `vente:<action>` sont routés vers chaque module, le reste va à Aquaman.
-- **Mises à jour** (`src/lib/update.js`) : avec un jeton GitHub en lecture seule, lecture de `aquaman-perso/manifest.json` sur `main` toutes les 6 h, puis notification. Aucune installation automatique.
+- **Mises à jour** (`src/lib/update.js`) : lecture de `aquaman-perso/manifest.json` sur `main` (dépôt public, sans jeton) toutes les 6 h, puis notification. Aucune installation automatique.
 
 ## Adresses contactées
 
 - `https://poseidon-scans.net/*` : le jeu, avec ta session.
-- `https://api.github.com/repos/TeddySbot/poseidon/contents/aquaman-perso/manifest.json` : uniquement si un jeton est enregistré.
+- `https://api.github.com/repos/TeddySbot/poseidon/contents/aquaman-perso/manifest.json` : toutes les 6 h, sans compte ni jeton (seule ton adresse IP est vue par GitHub, comme pour toute page web).
 
 ## Après une modification
 
