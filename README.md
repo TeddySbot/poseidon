@@ -15,7 +15,7 @@ Installation : 5 minutes.</p>
 
 ## 💻 Installer sur PC
 
-Navigateurs : **Chrome, Brave, Edge, Opera, Vivaldi**. Firefox et les téléphones ne sont pas gérés.
+Navigateurs : **Chrome, Brave, Edge, Opera, Vivaldi**. Téléphone : voir plus bas.
 
 ### 1. Récupérer l'extension
 
@@ -59,6 +59,41 @@ Toutes les 6 h, l'extension regarde sur ce dépôt si une version plus récente 
 
 ---
 
+## 📱 Installer sur téléphone
+
+Sur téléphone, Aquaman est un **script** : mêmes fonctions sur le site, sans les Alertes Marché ni la Vente auto (elles ont besoin de l'extension pour PC).
+
+**Android : Firefox**
+1. Installe **Firefox** depuis le Play Store.
+2. Menu ⋮ → **Modules complémentaires** → **Tampermonkey** → **Ajouter à Firefox**.
+3. Ouvre [**aquaman-perso.user.js**](https://github.com/TeddySbot/poseidon/releases/latest/download/aquaman-perso.user.js) dans Firefox : Tampermonkey propose de l'installer → **Installer**.
+4. Ouvre [poseidon-scans.net/jeu](https://poseidon-scans.net/jeu).
+
+**iPhone / iPad : Safari**
+1. Installe l'app gratuite **Userscripts** depuis l'App Store.
+2. Réglages → **Safari** → **Extensions** → **Userscripts** : active-la et autorise-la sur poseidon-scans.net.
+3. Ouvre [**aquaman-perso.user.js**](https://github.com/TeddySbot/poseidon/releases/latest/download/aquaman-perso.user.js) dans Safari, touche l'icône **Userscripts** → **Installer**.
+4. Ouvre [poseidon-scans.net/jeu](https://poseidon-scans.net/jeu).
+
+Chrome sur téléphone n'accepte ni extensions ni scripts. Le script se met à jour tout seul : il cherche une nouvelle version toutes les 10 minutes et te la propose en bas de l'écran. Ses réglages sont dans **Plus** → **Réglages**.
+
+---
+
+## 🔗 Relier tes appareils (PC, téléphone, serveur)
+
+La **garantie anti-malchance** et les **séries favorites** peuvent être les mêmes partout. Aucun serveur à installer : tout passe par un **Gist privé de ton compte GitHub**, où chaque appareil écrit son propre fichier.
+
+1. Crée un jeton GitHub : **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**. Dans **Account permissions** → **Gists** : *Read and write*. Rien d'autre.
+2. PC : fenêtre d'Aquaman → **Accueil** → **Synchro entre appareils**, colle le jeton → **Relier**. Le Gist `aquaman-perso-sync` est créé.
+3. Téléphone : **Plus** → **Réglages** → colle le **même** jeton → **Relier**.
+4. Sous la synchro s'affichent ton identifiant joueur et le nombre de boosters comptés par appareil.
+
+**Un script ouvre tes boosters sur un serveur ?** Ajoute une ligne à ton script pour qu'il envoie ses ouvertures avec [`tools/aquaman_sync.py`](tools/README.md). Elles comptent alors partout.
+
+> Un Gist secret ne s'affiche nulle part, mais quiconque a son lien peut le lire. Il ne contient que ton identifiant joueur, l'heure de tes ouvertures et leur meilleure rareté, et tes séries favorites. Utilise un jeton qui n'a que l'accès « Gists ».
+
+---
+
 ## ✨ Ce que ça ajoute
 
 **Sur le site (Aquaman)**
@@ -84,7 +119,7 @@ Toutes les 6 h, l'extension regarde sur ce dépôt si une version plus récente 
 Avec Git : `git pull` dans le dossier, puis **↻** sous Aquaman dans `chrome://extensions`. Avec le zip : télécharge le nouveau zip, remplace le contenu du dossier, puis **↻**. Tes réglages et tes listes sont gardés.
 
 **Quelles données sont envoyées ?**
-Aucune, à personne. L'extension lit le jeu avec ta session sur `poseidon-scans.net`, comme le site lui-même. Tout le reste (listes, statistiques, réglages) reste dans `chrome.storage` sur ton PC. Le seul autre contact est GitHub (lecture de la version publiée), sans compte ni jeton.
+Aucune, à personne. L'extension lit le jeu avec ta session sur `poseidon-scans.net`, comme le site lui-même. Tes listes, statistiques et réglages restent sur ton PC. Le seul autre contact est GitHub : lecture de la version publiée et, si tu l'actives, ta synchro dans **ton propre** Gist privé.
 
 **C'est autorisé par le site ?**
 Les règles de Poseidon Scans interdisent les robots. Les Alertes (selon la fréquence) et la Vente auto font des requêtes automatiques avec ton compte : **à utiliser à tes risques**, avec une fréquence raisonnable (5 s ou plus pour les alertes, vitesse « Normal » pour la vente auto).
@@ -101,7 +136,7 @@ Le site refuse les ventes envoyées directement par une extension. La Vente auto
 
 1. Monte la version dans `aquaman-perso/manifest.json` (par exemple `1.4.1`).
 2. Pousse sur `main`.
-3. Le workflow **Release Aquaman** voit la nouvelle version, crée le tag `aquaman-v1.4.1`, construit `aquaman-perso-1.4.1.zip` et publie la release. Si la version n'a pas changé, il ne fait rien.
+3. Le workflow **Release Aquaman** voit la nouvelle version, crée le tag `aquaman-v1.4.1`, construit le zip et le script téléphone, puis publie la release. Si la version n'a pas changé, il ne fait rien.
 
 Les extensions installées voient la nouvelle version dans les 6 h (ou tout de suite avec **Vérifier**).
 
@@ -111,7 +146,9 @@ Les extensions installées voient la nouvelle version dans les 6 h (ou tout de s
 
 | Dossier | Rôle |
 | --- | --- |
-| `aquaman-perso/` | **L'extension à installer.** |
+| `aquaman-perso/` | **L'extension à installer** (et les sources de la version téléphone, `src/userscript/`). |
+| `tools/` | `aquaman_sync.py` (boosters ouverts par un serveur) et `build_userscript.py` (version téléphone). |
+| `docs/` | La page d'installation (GitHub Pages). |
 | `poseidon-alertes/`, `poseidon-vente/` | Anciennes versions séparées des deux outils (remplacées par `aquaman-perso`). |
 | `aquaman-chromium/` | Aquaman d'origine (A‑Finch13), gardé pour référence. **Ne pas installer.** |
 
