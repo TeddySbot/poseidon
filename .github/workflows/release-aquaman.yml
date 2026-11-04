@@ -1,11 +1,13 @@
 name: Release Aquaman
 
-# Publie une release quand un tag "aquaman-vX.Y.Z" est poussé : vérifie que la version du manifest correspond,
-# zippe le dossier aquaman-perso et attache le zip à la release.
+# Publie une release à chaque nouvelle version d'Aquaman perso arrivée sur main :
+# lit la version de aquaman-perso/manifest.json et, si la release "aquaman-vX.Y.Z" n'existe pas encore,
+# crée le tag, zippe le dossier aquaman-perso et attache le zip. Rien à faire à la main.
 on:
   push:
-    tags:
-      - 'aquaman-v*'
+    branches: [main]
+    paths: ['aquaman-perso/**']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,26 +18,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Vérifier la version
+      - name: Lire la version
         id: ver
+        run: echo "version=$(jq -r .version aquaman-perso/manifest.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Release déjà publiée ?
+        id: exists
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="${GITHUB_REF_NAME#aquaman-v}"
-          MANIFEST=$(jq -r .version aquaman-perso/manifest.json)
-          if [ "$TAG" != "$MANIFEST" ]; then
-            echo "::error::Le tag ($TAG) ne correspond pas à aquaman-perso/manifest.json ($MANIFEST)."
-            exit 1
+          if gh release view "aquaman-v${{ steps.ver.outputs.version }}" >/dev/null 2>&1; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "La version ${{ steps.ver.outputs.version }} est déjà publiée : rien à faire."
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
           fi
-          echo "version=$MANIFEST" >> "$GITHUB_OUTPUT"
 
       - name: Construire le zip
+        if: steps.exists.outputs.found == 'false'
         run: |
           cd aquaman-perso
           zip -r "../aquaman-perso-${{ steps.ver.outputs.version }}.zip" . -x '.*'
 
       - name: Publier la release
+        if: steps.exists.outputs.found == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" "aquaman-perso-${{ steps.ver.outputs.version }}.zip" \
+          gh release create "aquaman-v${{ steps.ver.outputs.version }}" "aquaman-perso-${{ steps.ver.outputs.version }}.zip" \
+            --target "$GITHUB_SHA" \
             --title "Aquaman perso ${{ steps.ver.outputs.version }}" \
             --notes "Dézippe dans le dossier de l'extension (en remplaçant les fichiers), puis clique sur ↻ sous Aquaman dans chrome://extensions. Avec Git : git pull, puis ↻."

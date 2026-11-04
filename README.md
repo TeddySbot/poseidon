@@ -103,12 +103,9 @@ Le site refuse les ventes envoyées directement par une extension. La Vente auto
 
 ## 🛠 Pour Teddy : publier une version
 
-1. Monte la version dans `aquaman-perso/manifest.json` (par exemple `1.4.1`), puis commit sur `main`.
-2. Crée et pousse le tag correspondant :
-   ```bash
-   git tag aquaman-v1.4.1 && git push origin aquaman-v1.4.1
-   ```
-3. Le workflow **Release Aquaman** vérifie que le tag correspond au manifest, construit `aquaman-perso-1.4.1.zip` et publie la release.
+1. Monte la version dans `aquaman-perso/manifest.json` (par exemple `1.4.1`).
+2. Pousse sur `main`.
+3. Le workflow **Release Aquaman** voit la nouvelle version, crée le tag `aquaman-v1.4.1`, construit `aquaman-perso-1.4.1.zip` et publie la release. Si la version n'a pas changé, il ne fait rien.
 
 Les extensions qui ont un jeton voient la nouvelle version dans les 6 h (ou tout de suite avec **Vérifier**).
 
