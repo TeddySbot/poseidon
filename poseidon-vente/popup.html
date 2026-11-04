@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<style>
+  :root { --bg:#0b0d12; --panel:#151922; --line:#262c38; --txt:#e5e7eb; --mut:#8b93a3; --acc:#3b82f6; --bad:#ef4444; --ok:#22c55e; --sim:#eab308; }
+  * { box-sizing:border-box; }
+  body { margin:0; width:400px; background:var(--bg); color:var(--txt); font:13px/1.4 system-ui, "Segoe UI", sans-serif; }
+  header { padding:12px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px; }
+  header img { width:22px; height:22px; }
+  header h1 { font-size:14px; margin:0; font-weight:650; flex:1; }
+  .pill { font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--panel); border:1px solid var(--line); }
+  .pill.sim { color:var(--sim); border-color:#713f12; }
+  .pill.real { color:var(--ok); border-color:#14532d; }
+  .pill.off { color:var(--mut); }
+  section { padding:10px 16px; border-bottom:1px solid var(--line); }
+  h2 { font-size:11px; color:var(--mut); text-transform:uppercase; letter-spacing:.5px; margin:0 0 6px; font-weight:600; }
+  .toggles { display:flex; flex-direction:column; gap:6px; }
+  .tg { display:flex; align-items:center; gap:8px; cursor:pointer; }
+  .tg input { width:16px; height:16px; accent-color:var(--acc); }
+  .tg small { color:var(--mut); }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+  .grid label { display:block; color:var(--mut); font-size:10px; text-transform:uppercase; letter-spacing:.4px; }
+  .grid label.rk { display:flex; align-items:center; gap:4px; cursor:pointer; margin-bottom:3px; color:var(--txt); }
+  .grid label.rk input { width:13px; height:13px; margin:0; accent-color:var(--acc); }
+  input[type=number]:disabled { opacity:.4; }
+  input[type=number] { width:100%; background:var(--panel); border:1px solid var(--line); color:var(--txt); border-radius:6px; padding:5px 6px; font:inherit; }
+  .stats { display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; }
+  .stats div { display:flex; justify-content:space-between; gap:6px; }
+  .stats span:first-child { color:var(--mut); }
+  .err { color:var(--bad); margin-top:6px; }
+  .idle { color:var(--sim); margin-top:6px; }
+  .btns { display:flex; gap:6px; flex-wrap:wrap; }
+  button { background:var(--acc); color:white; border:0; border-radius:8px; padding:7px 10px; font:inherit; font-weight:600; cursor:pointer; }
+  button.ghost { background:transparent; border:1px solid var(--line); color:var(--txt); font-weight:500; }
+  button.danger { background:transparent; border:1px solid #7f1d1d; color:#fca5a5; font-weight:500; }
+  button.stop { width:100%; background:#b91c1c; font-size:14px; padding:10px; letter-spacing:.5px; }
+  button.stop:disabled { background:var(--panel); color:var(--mut); cursor:default; }
+  button:hover { filter:brightness(1.15); }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  td { padding:3px 4px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  td.n { white-space:normal; }
+  td.r { text-align:right; font-variant-numeric:tabular-nums; }
+  .scroll { max-height:190px; overflow:auto; }
+  .log div { padding:3px 0; border-bottom:1px solid var(--line); font-size:12px; }
+  .log time { color:var(--mut); margin-right:6px; font-variant-numeric:tabular-nums; }
+  .k-sold { color:var(--ok); } .k-error { color:var(--bad); } .k-sim { color:var(--sim); } .k-skip { color:var(--mut); }
+  .R-N { color:#cbd5e1; } .R-R { color:#60a5fa; } .R-SR { color:#c084fc; }
+  .muted { color:var(--mut); }
+</style>
+</head>
+<body>
+<header>
+  <img src="icons/icon48.png" alt="">
+  <h1>Vente auto Poseidon <small id="ver" style="color:var(--mut);font-weight:400"></small></h1>
+  <span id="modePill" class="pill off">Arrêtée</span>
+</header>
+
+<section>
+  <button id="stopAll" class="stop">⏹ TOUT ARRÊTER</button>
+</section>
+
+<section class="toggles">
+  <label class="tg"><input type="checkbox" id="enabled"> Activer la vente automatique</label>
+  <label class="tg"><input type="checkbox" id="dryRun"> Mode simulation <small>(ne vend et ne retire rien)</small></label>
+</section>
+
+<section>
+  <h2>Raretés à vendre, planchers (Perles minimum) et emplacements</h2>
+  <div class="grid">
+    <div><label class="rk"><input type="checkbox" id="rN"> Commune</label><input type="number" id="fN" min="1"></div>
+    <div><label class="rk"><input type="checkbox" id="rR"> Rare</label><input type="number" id="fR" min="1"></div>
+    <div><label class="rk"><input type="checkbox" id="rSR"> Épique</label><input type="number" id="fSR" min="1"></div>
+    <div><label>Max ventes</label><input type="number" id="maxSlots" min="1" max="50"></div>
+  </div>
+</section>
+
+<section>
+  <h2>État</h2>
+  <div class="stats">
+    <div><span>Activité</span><span id="phase">–</span></div>
+    <div><span>Ventes en cours</span><span id="open">–</span></div>
+    <div><span>Prochaine rotation</span><span id="nextRot">–</span></div>
+    <div><span>Enchères</span><span id="auc">–</span></div>
+    <div><span>Inventaire</span><span id="scan">–</span></div>
+    <div><span>Doubles (recherchés)</span><span id="cards">–</span></div>
+  </div>
+  <div id="idle" class="idle" hidden></div>
+  <div id="err" class="err" hidden></div>
+</section>
+
+<section class="btns">
+  <button id="stats" class="ghost">📊 Statistiques</button>
+  <button id="rotate">Cycle complet maintenant</button>
+  <button id="rescan" class="ghost">Refaire l'inventaire</button>
+  <button id="withdraw" class="danger">Tout retirer et arrêter</button>
+</section>
+
+<section id="planBox" hidden>
+  <h2 id="planTitle">Dernière simulation</h2>
+  <div class="scroll"><table id="plan"></table></div>
+</section>
+
+<section>
+  <h2>Journal <button id="clearLog" class="ghost" style="float:right;padding:1px 6px;font-size:11px">Effacer</button></h2>
+  <div id="log" class="log scroll"></div>
+</section>
+
+<script src="popup.js"></script>
+</body>
+</html>

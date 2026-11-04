@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Statistiques – Vente auto Poseidon</title>
+<link rel="icon" href="icons/icon48.png">
+<style>
+  :root { --bg:#0b0d12; --panel:#131720; --panel2:#181d28; --line:#262c38; --txt:#e5e7eb; --mut:#8b93a3; --acc:#3b82f6; --ok:#22c55e; --bad:#f87171; --sim:#eab308; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:14px/1.45 system-ui, "Segoe UI", sans-serif; }
+  .wrap { max-width:1100px; margin:0 auto; padding:24px 16px 48px; }
+  header { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-bottom:18px; }
+  header img { width:28px; height:28px; }
+  header h1 { margin:0; font-size:20px; font-weight:700; flex:1; min-width:220px; }
+  header .since { color:var(--mut); font-size:13px; width:100%; }
+  button { background:var(--acc); color:#fff; border:0; border-radius:8px; padding:8px 12px; font:inherit; font-weight:600; cursor:pointer; }
+  button.ghost { background:transparent; border:1px solid var(--line); color:var(--txt); font-weight:500; }
+  button.danger { background:transparent; border:1px solid #7f1d1d; color:#fca5a5; font-weight:500; }
+  button:disabled { opacity:.5; cursor:default; }
+  button:hover:not(:disabled) { filter:brightness(1.15); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:16px; }
+  .card h2 { margin:0 0 12px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--mut); font-weight:650; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .card h2 .sp { flex:1; }
+  .tiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:12px; margin-bottom:16px; }
+  .tile { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 16px; }
+  .tile .lab { color:var(--mut); font-size:12px; }
+  .tile .val { font-size:28px; font-weight:750; font-variant-numeric:tabular-nums; margin-top:2px; }
+  .tile .sub { color:var(--mut); font-size:12px; margin-top:2px; }
+  .tile.hero .val { color:var(--ok); }
+  .seg { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .seg button { background:transparent; color:var(--mut); border-radius:0; font-weight:500; padding:6px 10px; }
+  .seg button.on { background:var(--panel2); color:var(--txt); font-weight:650; }
+  .tablewrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th, td { padding:7px 8px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
+  th { color:var(--mut); font-weight:600; font-size:12px; }
+  th:first-child, td:first-child { text-align:left; }
+  td.l { text-align:left; white-space:normal; }
+  tr.total td { font-weight:700; border-top:2px solid var(--line); }
+  .up { color:var(--ok); } .down { color:var(--bad); } .zero { color:var(--mut); }
+  .R-N { color:#cbd5e1; } .R-R { color:#60a5fa; } .R-SR { color:#c084fc; } .R-SSR { color:#fbbf24; } .R-UR { color:#f87171; } .R-SEC { color:#f472b6; }
+  .muted { color:var(--mut); }
+  .note { color:var(--mut); font-size:12px; margin-top:8px; }
+  .progress { color:var(--sim); font-size:13px; }
+  .chart { position:relative; }
+  .chart svg { width:100%; height:220px; display:block; }
+  .tip { position:absolute; pointer-events:none; background:#1f2533; border:1px solid var(--line); border-radius:8px; padding:6px 9px; font-size:12px; white-space:nowrap; transform:translate(-50%, -100%); display:none; }
+  .scroll { max-height:420px; overflow:auto; }
+  .empty { color:var(--mut); padding:12px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="icons/icon48.png" alt="">
+    <h1>Statistiques de la vente auto</h1>
+    <button id="count">Recompter ma collection</button>
+    <button id="reset" class="danger">Remettre à zéro</button>
+    <button id="csv" class="ghost">Exporter les ventes (CSV)</button>
+    <div class="since" id="since"></div>
+    <div class="progress" id="progress" hidden></div>
+  </header>
+
+  <div class="card" style="padding:10px 16px">
+    <h2 style="margin:0">Période des ventes <span class="sp"></span>
+      <span class="seg" id="period">
+        <button data-p="day">Aujourd'hui</button>
+        <button data-p="7d">7 jours</button>
+        <button data-p="base" class="on">Depuis le départ</button>
+        <button data-p="all">Tout</button>
+      </span>
+    </h2>
+  </div>
+
+  <div class="tiles">
+    <div class="tile hero"><div class="lab">Rapporté par le script (net)</div><div class="val" id="kNet">–</div><div class="sub" id="kNetSub"></div></div>
+    <div class="tile"><div class="lab">Cartes vendues par le script</div><div class="val" id="kSold">–</div><div class="sub" id="kSoldSub"></div></div>
+    <div class="tile"><div class="lab">Ventes en cours (script)</div><div class="val" id="kOpen">–</div><div class="sub" id="kOpenSub"></div></div>
+    <div class="tile"><div class="lab">Solde de Perles</div><div class="val" id="kPerles">–</div><div class="sub" id="kPerlesSub"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Perles nettes gagnées par jour (14 derniers jours)</h2>
+    <div class="chart" id="chart"><svg id="svg" role="img" aria-label="Perles nettes gagnées par jour"></svg><div class="tip" id="tip"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Ventes du script par rareté</h2>
+    <div class="tablewrap"><table id="byRarity"></table></div>
+    <div class="note">Net = prix − commission du marché (5 %). Ne compte que les ventes mises en ligne par le script, pas tes ventes à la main.</div>
+  </div>
+
+  <div class="card">
+    <h2>Ma collection : départ → maintenant</h2>
+    <div class="tablewrap"><table id="collection"></table></div>
+    <div class="note" id="collNote"></div>
+  </div>
+
+  <div class="card">
+    <h2>Historique des ventes du script</h2>
+    <div class="scroll"><table id="history"></table></div>
+  </div>
+</div>
+<script src="stats.js"></script>
+</body>
+</html>
