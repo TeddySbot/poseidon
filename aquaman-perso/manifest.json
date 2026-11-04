@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Aquaman (perso)",
   "short_name": "Aquaman perso",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Compagnon Poseidon Scans : Aquaman nettoyé (sans serveur externe) + Alertes Marché + Vente auto.",
   "author": "Teddy (Aquaman d'après A-Finch13, MIT)",
   "icons": {

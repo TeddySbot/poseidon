@@ -1,4 +1,4 @@
-# Aquaman (perso) — v1.4.0
+# Aquaman (perso) — v1.4.1
 
 Guide d'installation complet : voir le [README du dépôt](../README.md).
 

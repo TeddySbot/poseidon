@@ -1,8 +1,8 @@
 name: Release Aquaman
 
 # Publie une release à chaque nouvelle version d'Aquaman perso arrivée sur main :
-# lit la version de aquaman-perso/manifest.json et, si la release "aquaman-vX.Y.Z" n'existe pas encore,
-# crée le tag, zippe le dossier aquaman-perso, construit la version téléphone, et attache le tout. Rien à faire à la main.
+# lit la version de aquaman-perso/manifest.json, crée la release "aquaman-vX.Y.Z" si elle n'existe pas (zip + script
+# téléphone + outil serveur), ou y ajoute les fichiers qui lui manquent. Rien à faire à la main.
 on:
   push:
     branches: [main]
@@ -22,32 +22,28 @@ jobs:
         id: ver
         run: echo "version=$(jq -r .version aquaman-perso/manifest.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Release déjà publiée ?
-        id: exists
+      - name: Construire le zip et le script
+        run: |
+          V="${{ steps.ver.outputs.version }}"
+          (cd aquaman-perso && zip -qr "../aquaman-perso-$V.zip" . -x '.*')
+          cp "aquaman-perso-$V.zip" aquaman-perso.zip
+          python3 tools/build_userscript.py
+
+      - name: Publier (ou compléter) la release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view "aquaman-v${{ steps.ver.outputs.version }}" >/dev/null 2>&1; then
-            echo "found=true" >> "$GITHUB_OUTPUT"
-            echo "La version ${{ steps.ver.outputs.version }} est déjà publiée : rien à faire."
+          V="${{ steps.ver.outputs.version }}"
+          FILES="aquaman-perso-$V.zip aquaman-perso.zip dist/aquaman-perso.user.js tools/aquaman_sync.py"
+          if gh release view "aquaman-v$V" >/dev/null 2>&1; then
+            # Déjà publiée : on ajoute seulement les fichiers qui manquent (une version publiée n'est jamais réécrite).
+            HAVE=$(gh release view "aquaman-v$V" --json assets -q '.assets[].name')
+            for f in $FILES; do
+              grep -qx "$(basename "$f")" <<< "$HAVE" || gh release upload "aquaman-v$V" "$f"
+            done
           else
-            echo "found=false" >> "$GITHUB_OUTPUT"
+            gh release create "aquaman-v$V" $FILES \
+              --target "$GITHUB_SHA" \
+              --title "Aquaman perso $V" \
+              --notes "PC : dézippe aquaman-perso.zip dans le dossier de l'extension (en remplaçant les fichiers), puis ↻ sous Aquaman dans chrome://extensions (avec Git : git pull, puis ↻). Téléphone : aquaman-perso.user.js se met à jour tout seul. Serveur : aquaman_sync.py."
           fi
-
-      - name: Construire le zip
-        if: steps.exists.outputs.found == 'false'
-        run: |
-          cd aquaman-perso
-          zip -r "../aquaman-perso-${{ steps.ver.outputs.version }}.zip" . -x '.*'
-          cp "../aquaman-perso-${{ steps.ver.outputs.version }}.zip" ../aquaman-perso.zip
-          cd .. && python3 tools/build_userscript.py
-
-      - name: Publier la release
-        if: steps.exists.outputs.found == 'false'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "aquaman-v${{ steps.ver.outputs.version }}" "aquaman-perso-${{ steps.ver.outputs.version }}.zip" aquaman-perso.zip dist/aquaman-perso.user.js tools/aquaman_sync.py \
-            --target "$GITHUB_SHA" \
-            --title "Aquaman perso ${{ steps.ver.outputs.version }}" \
-            --notes "PC : dézippe aquaman-perso.zip dans le dossier de l'extension (en remplaçant les fichiers), puis ↻ sous Aquaman dans chrome://extensions (avec Git : git pull, puis ↻). Téléphone : aquaman-perso.user.js se met à jour tout seul. Serveur : aquaman_sync.py."
