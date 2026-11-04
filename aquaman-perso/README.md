@@ -1,32 +1,43 @@
-# Aquaman (perso)
+# Aquaman (perso) — v1.4.0
 
-Copie personnelle de l'extension **Aquaman** de A-Finch13 (licence MIT, voir LICENSE), nettoyée pour ne parler
-**qu'à poseidon-scans.net**.
+Guide d'installation complet : voir le [README du dépôt](../README.md).
 
-## Retiré par rapport à l'original (v1.3.1)
+## Ce que contient ce dossier
 
-- **Relais de l'auteur** (`aquaman-relay…workers.dev`) : plus aucun envoi (identifiant, pseudo, ouvertures de boosters,
-  favoris, recherches, achats, beaux tirages, collections des autres joueurs). Les appels sont neutralisés dans le code
-  (`offline()` dans `src/lib/aquaman.js`), sans réseau, et le domaine n'est plus dans les permissions.
-- **Mise à jour automatique** : plus de `installer-mises-a-jour.bat`, plus de dossier `updater/` (programme PowerShell),
-  plus de permission `nativeMessaging`, plus de recherche de version sur GitHub.
-- **Télémétrie** « joueurs avec Aquaman » et menus réservés à l'auteur.
-- **Relevé des beaux tirages chaque minute en arrière-plan** et lecture automatique des collections des autres joueurs.
-- Permission `browsingData` (vidage du cache du site).
-- Réglages de partage : supprimés de la fenêtre et forcés à « non » dans le code.
+| Partie | Fichiers | Origine |
+| --- | --- | --- |
+| Aquaman (fonctions sur le site) | `src/content/`, `src/lib/aquaman.js` | Aquaman 1.3.1 de A‑Finch13 (MIT), nettoyé |
+| Alertes Marché | `src/modules/alertes.js`, `src/popup/popup-alertes.js` | « Poseidon – Alertes Marché » 1.1.0 |
+| Vente auto | `src/modules/vente.js`, `vente-logic.js`, `src/popup/popup-vente.js`, `src/pages/stats.*` | « Poseidon – Vente auto » 1.5.1 |
+| Fenêtre commune | `src/popup/popup.html`, `popup.css`, `popup.js` | nouvelle, au style Aquaman |
+| Service de fond | `src/background.js`, `src/lib/badge.js`, `src/lib/store.js`, `src/lib/update.js` | nouveau |
+
+## Retiré d'Aquaman d'origine
+
+- **Relais de l'auteur** (`aquaman-relay…workers.dev`) : plus aucun envoi (identifiant, pseudo, boosters, favoris, recherches, achats, beaux tirages, collections des autres joueurs). Les appels sont neutralisés (`offline()` dans `src/lib/aquaman.js`), et le domaine n'est plus dans les permissions.
+- **Installateur de mises à jour** : plus de `installer-mises-a-jour.bat`, de `updater/` (PowerShell) ni de permission `nativeMessaging`.
+- **Télémétrie** et menus réservés à l'auteur.
+- **Relevé des beaux tirages chaque minute** en arrière-plan, et lecture automatique des collections des autres joueurs.
+- Permission `browsingData`.
+- Réglages de partage : forcés à « non » dans le code.
 
 ## Modifié
 
-- Bouton **Acheter** sur la page d'une carte : il faut maintenant **deux clics** (le 1er affiche « Confirmer X Perles ? »).
+- Bouton **Acheter** sur la page d'une carte : deux clics (confirmation du prix).
+- Les ventes de la Vente auto sont marquées (`aqmVente`) pour que la « file de doublons » d'Aquaman ne les reprenne pas si le jeu les refuse.
 
-## Ce qui reste
+## Fonctionnement interne
 
-Toutes les fonctions locales : boosters rentables, compteur anti-malchance (sur ce navigateur seulement), pastilles
-dans les échanges, vitrine, favoris, onglet Manquantes, file de doublons, retrait des ventes, offres sur la page d'une
-carte, badge des boosters en attente (lecture de /api-game/v1/me toutes les 5 min).
-« Qui a cette carte ? » ne voit plus que : détenteurs publiés par le jeu, vendeurs, tes amis, et les tirages vus dans
-ton navigateur.
+- **Stockage** : chaque outil a ses clés avec un préfixe (`alertes:…`, `vente:…`), pour ne pas écraser celles d'Aquaman (`settings`, `status`…).
+- **Badge** (`src/lib/badge.js`) : par ordre de priorité, carte surveillée en vente (orange), erreur (rouge `!`), boosters à ouvrir (bleu), vente auto (vert = ventes en cours, jaune `SIM`).
+- **Messages** : `alertes:<action>` et `vente:<action>` sont routés vers chaque module, le reste va à Aquaman.
+- **Mises à jour** (`src/lib/update.js`) : avec un jeton GitHub en lecture seule, lecture de `aquaman-perso/manifest.json` sur `main` toutes les 6 h, puis notification. Aucune installation automatique.
 
-## Mettre à jour
+## Adresses contactées
 
-Pas de mise à jour automatique : pour reprendre une nouvelle version de l'original, il faut refaire ce nettoyage.
+- `https://poseidon-scans.net/*` : le jeu, avec ta session.
+- `https://api.github.com/repos/TeddySbot/poseidon/contents/aquaman-perso/manifest.json` : uniquement si un jeton est enregistré.
+
+## Après une modification
+
+`chrome://extensions` → **↻** sous Aquaman (perso).

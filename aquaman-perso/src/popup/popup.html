@@ -9,32 +9,191 @@
     <header class="head">
       <img src="../../icons/icon48.png" alt="" width="36" height="36" />
       <div>
-        <h1>Aquaman (perso)</h1>
-        <p class="muted">Version <span id="version"></span></p>
+        <h1>Aquaman</h1>
+        <p class="muted">Perso · v<span id="version"></span></p>
       </div>
+      <span id="headPill" class="pill off" hidden></span>
     </header>
 
-
-    <section class="status">
-      <p id="status" class="muted">…</p>
-    </section>
-
-    <nav class="actions">
-      <button type="button" class="btn main" data-open="/jeu">Ouvrir le jeu</button>
-      <button type="button" class="btn" data-open="/jeu#aqm-visite">Visite guidée</button>
-      <button type="button" class="btn" data-open="/jeu#aqm-nouveautes">Nouveautés</button>
+    <nav class="tabs" role="tablist">
+      <button type="button" data-tab="home" class="on">Accueil</button>
+      <button type="button" data-tab="alertes">Alertes<span id="alertCount" class="count" hidden></span></button>
+      <button type="button" data-tab="vente">Vente auto</button>
     </nav>
 
-    <section class="settings">
-      <h2>Notifications</h2>
-      <label class="switch"><input type="checkbox" data-setting="notifyBoosters" /> <span>Nouveaux boosters à ouvrir</span></label>
-      <label class="switch"><input type="checkbox" data-setting="notifyUpdated" /> <span>Nouvelle version installée (notification et nouveautés sur le site)</span></label>
-      <h2 class="gap">Confidentialité</h2>
-      <p class="muted">Version perso : aucun partage, aucun serveur externe, aucune mise à jour automatique. Les données restent dans ce navigateur.</p>
+    <!-- ========== ACCUEIL ========== -->
+    <section class="pane" id="pane-home">
+      <div id="update" class="banner" hidden>
+        <p><b>Aquaman perso <span id="update-version"></span> est disponible.</b></p>
+        <p class="muted" style="margin-top: 4px">Dans le dossier de l’extension : <code>git pull</code>, puis ↻ dans <code>chrome://extensions</code>. Ou télécharge le zip :</p>
+        <div class="row" style="margin-top: 8px"><button type="button" class="btn main small" data-open="releases">Page des versions</button></div>
+      </div>
+
+      <div class="status"><p id="status" class="muted">…</p></div>
+
+      <nav class="actions">
+        <button type="button" class="btn main" data-open="/jeu">Ouvrir le jeu</button>
+        <div class="row">
+          <button type="button" class="btn grow" data-open="/jeu#aqm-visite">Visite guidée</button>
+          <button type="button" class="btn grow" data-open="/jeu#aqm-nouveautes">Nouveautés</button>
+        </div>
+      </nav>
+
+      <div class="card">
+        <h2>Notifications</h2>
+        <label class="switch"><input type="checkbox" data-setting="notifyBoosters" /> <span>Nouveaux boosters à ouvrir</span></label>
+        <label class="switch"><input type="checkbox" data-setting="notifyUpdated" /> <span>Nouvelle version installée</span></label>
+
+        <h2 class="gap">Mises à jour <span class="sp"></span><button type="button" id="checkNow" class="link">Vérifier</button></h2>
+        <p class="muted">Le dépôt est privé : colle un jeton GitHub <b>en lecture seule</b> pour être prévenu des nouvelles versions. Il reste dans ce navigateur et n’est envoyé qu’à GitHub.</p>
+        <div class="row" style="margin-top: 8px">
+          <input id="token" class="field grow" type="password" placeholder="github_pat_…" autocomplete="off" spellcheck="false" />
+          <button type="button" id="tokenSave" class="btn small">OK</button>
+        </div>
+        <p id="updateInfo" class="muted" style="margin-top: 6px"></p>
+
+        <h2 class="gap">Confidentialité</h2>
+        <p class="muted">Aucun serveur externe, aucun partage, aucune installation automatique. Tes données restent dans ce navigateur.</p>
+      </div>
     </section>
 
-    <footer class="foot"><span>D’après Aquaman de A-Finch13 (licence MIT)</span></footer>
+    <!-- ========== ALERTES ========== -->
+    <section class="pane" id="pane-alertes" hidden>
+      <form id="a-add" class="card" autocomplete="off">
+        <h2>Surveiller une carte</h2>
+        <input id="a-name" class="field" list="a-sugg" placeholder="ex : Rosa Runcandel" required />
+        <datalist id="a-sugg"></datalist>
+        <div class="row" style="margin-top: 8px">
+          <div class="grow">
+            <label class="lab" for="a-max">Prix max</label>
+            <input id="a-max" class="field" type="number" min="1" placeholder="aucun" />
+          </div>
+          <div class="grow">
+            <label class="lab" for="a-rar">Rareté</label>
+            <select id="a-rar" class="field">
+              <option value="">Toutes</option>
+              <option value="N">Commune</option>
+              <option value="R">Rare</option>
+              <option value="SR">Épique</option>
+              <option value="SSR">Légendaire</option>
+              <option value="UR">Mythique</option>
+              <option value="SEC">Secrète</option>
+            </select>
+          </div>
+        </div>
+        <label class="switch"><input id="a-exact" type="checkbox" checked /> <span>Nom exact (décoché : le nom contient le texte)</span></label>
+        <div class="row" style="margin-top: 10px"><button type="submit" class="btn main grow">Ajouter à ma liste</button></div>
+      </form>
+
+      <div class="card">
+        <h2>Ma liste <span class="sp"></span><span id="a-paused" class="pill sim" hidden>En pause</span></h2>
+        <ul id="a-list" class="list"></ul>
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <span id="a-dot" class="dot"></span>
+          <p id="a-status" class="muted grow">—</p>
+        </div>
+        <div class="row" style="margin-top: 10px">
+          <select id="a-interval" class="field" style="width: auto" title="Fréquence de vérification">
+            <option value="2">Toutes les 2 s</option>
+            <option value="3">Toutes les 3 s</option>
+            <option value="5">Toutes les 5 s</option>
+            <option value="10">Toutes les 10 s</option>
+            <option value="15">Toutes les 15 s</option>
+            <option value="30">Toutes les 30 s</option>
+            <option value="60">Chaque minute</option>
+          </select>
+          <button type="button" id="a-now" class="btn small grow">Vérifier</button>
+          <button type="button" id="a-pause" class="btn small">Pause</button>
+        </div>
+        <p class="muted" style="margin-top: 8px">Ventes à prix fixe seulement, pas les enchères. Rien n’est jamais acheté à ta place.</p>
+      </div>
+    </section>
+
+    <!-- ========== VENTE AUTO ========== -->
+    <section class="pane" id="pane-vente" hidden>
+      <div class="row">
+        <button type="button" id="v-main" class="btn go grow">▶ Démarrer</button>
+        <div class="seg" role="radiogroup" aria-label="Mode">
+          <button type="button" id="v-sim" class="sim" title="Ne vend et ne retire rien : montre seulement ce qui serait fait">Simulation</button>
+          <button type="button" id="v-real" class="real" title="Vend et retire pour de vrai">Réel</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="phase"><span id="v-dot" class="dot"></span><span id="v-phase" class="grow">–</span><span id="v-pill" class="pill off">Arrêtée</span></div>
+        <div id="v-progress" hidden>
+          <div class="bar"><i id="v-barFill"></i></div>
+          <div class="bar-lab" id="v-barLab"></div>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><b id="v-open">–</b><span>ventes en cours</span></div>
+          <div class="kpi"><b id="v-wanted">–</b><span id="v-wantedLab">doubles recherchés</span></div>
+          <div class="kpi"><b id="v-nextRot">–</b><span>prochaine rotation</span></div>
+        </div>
+        <div id="v-err" class="msg err" hidden></div>
+        <div id="v-idle" class="msg idle" hidden></div>
+      </div>
+
+      <nav class="subtabs">
+        <button type="button" data-sub="activity" class="on">Activité</button>
+        <button type="button" data-sub="settings">Réglages</button>
+        <button type="button" data-sub="actions">Actions</button>
+      </nav>
+
+      <div id="v-activity">
+        <div class="card" id="v-planBox" hidden>
+          <h2 id="v-planTitle">Dernière simulation</h2>
+          <div class="scroll"><table id="v-plan"></table></div>
+        </div>
+        <div class="card" style="margin-top: 10px">
+          <h2>Journal <span class="sp"></span><button type="button" id="v-clearLog" class="link">Effacer</button></h2>
+          <div id="v-log" class="log scroll"></div>
+        </div>
+      </div>
+
+      <div id="v-settings" hidden>
+        <div class="card">
+          <h2>Raretés à vendre · prix plancher</h2>
+          <div class="rar">
+            <label><input type="checkbox" id="v-rN" /> <span class="R-N">Commune</span></label><span class="hint"></span>
+            <div class="row"><input type="number" id="v-fN" class="field num" min="1" /> P</div>
+            <label><input type="checkbox" id="v-rR" /> <span class="R-R">Rare</span></label><span class="hint"></span>
+            <div class="row"><input type="number" id="v-fR" class="field num" min="1" /> P</div>
+            <label><input type="checkbox" id="v-rSR" /> <span class="R-SR">Épique</span></label><span class="hint">en dernier</span>
+            <div class="row"><input type="number" id="v-fSR" class="field num" min="1" /> P</div>
+          </div>
+          <h2 class="gap">Emplacements</h2>
+          <div class="row between"><span>Ventes en même temps (max)</span><input type="number" id="v-maxSlots" class="field num" min="1" max="50" /></div>
+          <h2 class="gap">Vitesse</h2>
+          <select id="v-readDelay" class="field" aria-label="Vitesse des lectures">
+            <option value="3000">Lectures : Prudent (1 toutes les 3 s)</option>
+            <option value="1200">Lectures : Normal (1 toutes les 1,2 s)</option>
+            <option value="600">Lectures : Rapide (1 toutes les 0,6 s)</option>
+            <option value="300">Lectures : Très rapide (1 toutes les 0,3 s)</option>
+          </select>
+          <div class="row between" style="margin-top: 8px"><span>Ventes + retraits max / 30 s</span><input type="number" id="v-writeMax" class="field num" min="1" max="29" /></div>
+          <p class="hint" id="v-estimate" style="margin-top: 8px"></p>
+        </div>
+      </div>
+
+      <div id="v-actions" hidden>
+        <div class="acts">
+          <button type="button" class="act" id="v-stats"><span class="ic">📊</span><div><b>Statistiques</b><span>Perles rapportées, collection, historique</span></div></button>
+          <button type="button" class="act" id="v-rotate"><span class="ic">🔄</span><div><b>Cycle complet maintenant</b><span>Retire tout puis remet en vente</span></div></button>
+          <button type="button" class="act" id="v-rescan"><span class="ic">🗂️</span><div><b>Refaire l’inventaire</b><span>Relit toute la collection</span></div></button>
+          <button type="button" class="act danger" id="v-withdraw"><span class="ic">⛔</span><div><b id="v-withdrawLab">Tout retirer et arrêter</b><span>Retire toutes les ventes à prix fixe (2 clics)</span></div></button>
+        </div>
+        <p class="muted" style="margin-top: 10px">Ne l’utilise pas en même temps que la « file de doublons » ou « Retirer mes ventes » d’Aquaman sur le site : les deux géreraient tes ventes.</p>
+      </div>
+    </section>
+
+    <footer class="foot"><span>D’après Aquaman de A-Finch13 (MIT) · Alertes et Vente auto par Teddy</span></footer>
 
     <script type="module" src="popup.js"></script>
+    <script type="module" src="popup-alertes.js"></script>
+    <script type="module" src="popup-vente.js"></script>
   </body>
 </html>
