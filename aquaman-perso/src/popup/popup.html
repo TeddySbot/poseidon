@@ -48,8 +48,16 @@
         <p class="muted">Toutes les 6 h, l’extension regarde sur GitHub si une version plus récente existe et te prévient. Rien ne s’installe tout seul.</p>
         <p id="updateInfo" class="muted" style="margin-top: 6px"></p>
 
+        <h2 class="gap">Synchro entre appareils <span class="sp"></span><span id="syncPill" class="pill off">Non reliée</span></h2>
+        <p class="muted">Relie ton PC, ton téléphone et ton serveur : garantie anti-malchance et séries favorites partagées par un <b>Gist privé</b> de ton compte GitHub. Jeton avec seulement l’accès « Gists ».</p>
+        <div class="row" style="margin-top: 8px">
+          <input id="syncToken" class="field grow" type="password" placeholder="Jeton GitHub (Gists)" autocomplete="off" spellcheck="false" />
+          <button type="button" id="syncSave" class="btn small">Relier</button>
+        </div>
+        <div id="syncInfo" class="muted" style="margin-top: 6px"></div>
+
         <h2 class="gap">Confidentialité</h2>
-        <p class="muted">Aucun serveur externe (seulement GitHub pour les versions), aucun partage, aucune installation automatique. Tes données restent dans ce navigateur.</p>
+        <p class="muted">Aucun serveur externe : seulement GitHub, pour les versions et ta synchro si tu l’actives. Aucune installation automatique. Tes données restent dans ce navigateur.</p>
       </div>
     </section>
 

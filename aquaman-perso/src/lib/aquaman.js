@@ -18,12 +18,16 @@ export const DEFAULTS = {
   syncMarket: false,
   sharePulls: false
 };
-const OFF = { syncPity: false, syncFavorites: false, syncWants: false, syncMarket: false, sharePulls: false };
+// Jamais de partage public. La garantie anti-malchance et les favoris se synchronisent seulement entre TES appareils,
+// par ton Gist GitHub privé, quand un jeton est enregistré (voir « synchro entre appareils » plus bas).
+const OFF = { syncWants: false, syncMarket: false, sharePulls: false };
 
 // Settings with their default values.
 export async function getSettings() {
   const { settings } = await chrome.storage.local.get('settings');
-  return { ...DEFAULTS, ...settings, ...OFF };
+  const { syncToken } = await chrome.storage.local.get('syncToken');
+  const linked = !!syncToken;
+  return { ...DEFAULTS, ...settings, ...OFF, syncPity: linked && settings?.syncPity !== false, syncFavorites: linked && settings?.syncFavorites !== false };
 }
 
 // Saves some settings.
@@ -438,6 +442,136 @@ export const PITY = { SSR: 60, UR: 190 };
 // Version perso : le relais de l'auteur est supprimé. Toute demande qui lui était destinée est refusée ici même,
 // sans aucun accès réseau ; les fonctions concernées retombent sur les données gardées dans le navigateur.
 const offline = async () => ({ ok: false, status: 0, json: async () => ({}) });
+
+// ---------- synchro entre appareils : ton Gist GitHub privé ----------
+// Chaque appareil (PC, téléphone, serveur) écrit SON fichier dans un Gist secret de ton compte GitHub :
+//   pity-<appareil>.json  { player, device, name, events: [{ id, at, top }], at }   boosters ouverts sur cet appareil
+//   fav-<appareil>.json   { player, device, name, list, at }                         séries favorites
+// Les autres fichiers ne sont jamais réécrits : pas de conflit. Chaque appareil lit tout et additionne.
+// Le serveur Linux qui ouvre les boosters écrit pity-server.json avec tools/aquaman_sync.py.
+// Jeton : GitHub → Settings → Developer settings → jeton avec seulement l'accès « Gists » (lecture et écriture).
+export const SYNC_DESCRIPTION = 'aquaman-perso-sync';
+const GH = 'https://api.github.com';
+
+async function syncConfig() {
+  const c = await chrome.storage.local.get(['syncToken', 'syncGist', 'syncDevice', 'syncName']);
+  if (!c.syncDevice) {
+    c.syncDevice = `${(typeof OWNER === 'string' ? 'tel' : 'pc')}-${Math.random().toString(36).slice(2, 8)}`;
+    await chrome.storage.local.set({ syncDevice: c.syncDevice });
+  }
+  if (!c.syncName) c.syncName = typeof OWNER === 'string' ? 'Téléphone (script)' : 'PC (extension)';
+  return c;
+}
+
+async function gh(token, method, path, body) {
+  const res = await fetch(GH + path, {
+    method,
+    headers: { accept: 'application/vnd.github+json', authorization: `Bearer ${token}`, 'x-github-api-version': '2022-11-28', ...(body ? { 'content-type': 'application/json' } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+    cache: 'no-store'
+  });
+  if (res.status === 401) throw new ApiError(401, 'sync_token', 'Jeton GitHub refusé (expiré ou faux).');
+  if (res.status === 403 || res.status === 404) throw new ApiError(res.status, 'sync_scope', 'Le jeton GitHub n’a pas l’accès « Gists ».');
+  if (!res.ok) throw new ApiError(res.status, 'sync_http', `GitHub répond ${res.status}.`);
+  return res.status === 204 ? null : res.json();
+}
+
+// Le Gist de synchro : celui enregistré, sinon celui du compte qui a la bonne description, sinon un nouveau (secret).
+async function syncGistId(cfg) {
+  if (cfg.syncGist) return cfg.syncGist;
+  for (let page = 1; page <= 5; page++) {
+    const list = await gh(cfg.syncToken, 'GET', `/gists?per_page=100&page=${page}`);
+    const found = (list ?? []).find((g) => g.description === SYNC_DESCRIPTION);
+    if (found) return void (await chrome.storage.local.set({ syncGist: found.id })) || found.id;
+    if (!list?.length || list.length < 100) break;
+  }
+  const made = await gh(cfg.syncToken, 'POST', '/gists', {
+    description: SYNC_DESCRIPTION,
+    public: false,
+    files: { 'README.md': { content: '# Aquaman perso : synchro\n\nFichiers écrits par Aquaman perso (un par appareil). Ne pas renommer ce Gist.\n' } }
+  });
+  await chrome.storage.local.set({ syncGist: made.id });
+  return made.id;
+}
+
+// Les fichiers du Gist, déjà lus en JSON ({ nom: objet }), et le Gist.
+async function readGist(cfg) {
+  const id = await syncGistId(cfg);
+  let gist;
+  try {
+    gist = await gh(cfg.syncToken, 'GET', `/gists/${id}`);
+  } catch (e) {
+    if (e.status === 404) await chrome.storage.local.remove('syncGist'); // Gist supprimé : on le recrée au prochain essai
+    throw e;
+  }
+  const files = {};
+  for (const [name, f] of Object.entries(gist.files ?? {})) {
+    if (!name.endsWith('.json')) continue;
+    let text = f.content;
+    if (f.truncated && f.raw_url) text = await (await fetch(f.raw_url, { cache: 'no-store' })).text();
+    try {
+      files[name] = JSON.parse(text);
+    } catch {}
+  }
+  return { id, files };
+}
+
+const writeGistFile = (cfg, id, name, data) => gh(cfg.syncToken, 'PATCH', `/gists/${id}`, { files: { [name]: { content: JSON.stringify(data) } } });
+
+// Remplace l'ancien relais pour /pity et /favorites : même forme de réponse ({ ok, json() }).
+async function syncFetch(path, init) {
+  const cfg = await syncConfig();
+  if (!cfg.syncToken) return offline();
+  const body = JSON.parse(init?.body ?? '{}');
+  const answer = (data) => ({ ok: true, status: 200, json: async () => data });
+  try {
+    const { id, files } = await readGist(cfg);
+    const of = (prefix) => Object.entries(files).filter(([n, f]) => n.startsWith(prefix) && f?.player === body.player);
+    if (path === '/pity') {
+      const name = `pity-${cfg.syncDevice}.json`;
+      const own = files[name]?.player === body.player ? files[name].events ?? [] : [];
+      const mineNow = mergeEvents(own, body.events ?? []);
+      if (mineNow.length !== own.length) await writeGistFile(cfg, id, name, { player: body.player, device: cfg.syncDevice, name: cfg.syncName, events: mineNow, at: Date.now() });
+      const all = of('pity-').reduce((acc, [n, f]) => mergeEvents(acc, n === name ? mineNow : f.events ?? []), mineNow);
+      await chrome.storage.local.set({ syncState: { at: Date.now(), error: null, devices: of('pity-').map(([, f]) => ({ name: f.name ?? f.device, count: f.events?.length ?? 0, at: f.at ?? 0 })) } });
+      return answer({ events: all, sec: null });
+    }
+    if (path === '/favorites') {
+      const name = `fav-${cfg.syncDevice}.json`;
+      const cur = files[name];
+      if (!cur || cur.player !== body.player || Number(body.at) > Number(cur.at ?? 0)) await writeGistFile(cfg, id, name, { player: body.player, device: cfg.syncDevice, name: cfg.syncName, list: body.list ?? [], at: Number(body.at) || 0 });
+      const best = of('fav-').map(([, f]) => f).concat([{ list: body.list, at: body.at }]).sort((a, b) => Number(b.at ?? 0) - Number(a.at ?? 0))[0];
+      return answer({ list: best?.list ?? [], at: Number(best?.at) || 0 });
+    }
+    return offline();
+  } catch (e) {
+    await chrome.storage.local.set({ syncState: { at: Date.now(), error: e?.message || String(e) } });
+    return { ok: false, status: e?.status ?? 0, json: async () => ({}) };
+  }
+}
+
+// Pour la fenêtre de réglages : vérifie le jeton, trouve ou crée le Gist, et lance une synchro.
+export async function syncSetup(token) {
+  if (!token) {
+    await chrome.storage.local.remove(['syncToken', 'syncGist', 'syncState']);
+    return { ok: true, off: true };
+  }
+  await chrome.storage.local.set({ syncToken: token.trim() });
+  await chrome.storage.local.remove('syncGist');
+  try {
+    const cfg = await syncConfig();
+    const gist = await syncGistId(cfg);
+    const p = await pity(true);
+    return { ok: true, gist, player: await myId().catch(() => null), pity: p };
+  } catch (e) {
+    return { error: e?.message || String(e) };
+  }
+}
+
+export async function syncInfo() {
+  const { syncToken, syncGist, syncState, syncDevice } = await chrome.storage.local.get(['syncToken', 'syncGist', 'syncState', 'syncDevice']);
+  return { linked: !!syncToken, gist: syncGist ?? null, state: syncState ?? null, device: syncDevice ?? null, player: await myId().catch(() => null) };
+}
 const PITY_EVENTS = 500; // more than the longest pity: older openings change nothing
 const PITY_PULL = 60e3; // the other devices' openings are read once a minute at most
 
@@ -511,7 +645,7 @@ async function exchangePity(state, force) {
   if (!force && !mine.unsynced.length && Date.now() - mine.syncedAt < PITY_PULL) return;
   const waiting = new Set(mine.unsynced);
   try {
-    const res = await offline(`/pity`, {
+    const res = await syncFetch(`/pity`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ player: state.id, events: mine.events.filter((e) => waiting.has(e.id)) })
@@ -625,7 +759,7 @@ async function localFavorites() {
 // Sends the list to the relay, which keeps the most recent one of all the player's devices, and takes it back.
 async function exchangeFavorites(local) {
   try {
-    const res = await offline(`/favorites`, {
+    const res = await syncFetch(`/favorites`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ player: await myId(), list: local.list, at: local.at })
@@ -1262,6 +1396,10 @@ export async function answer(msg) {
         return { kinds: await packKinds() };
       case 'packs-publish':
         return { error: 'disabled' };
+      case 'sync-setup':
+        return await syncSetup(msg.token);
+      case 'sync-info':
+        return await syncInfo();
       case 'favorite':
         return { favorites: await setFavorite(msg.id, !!msg.on) };
       case 'series-status':

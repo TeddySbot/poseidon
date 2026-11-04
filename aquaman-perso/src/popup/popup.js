@@ -72,7 +72,51 @@ $('#checkNow').addEventListener('click', async () => {
   renderUpdate();
 });
 
+// ---------- synchro entre appareils (Gist privé) ----------
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  e.append(...kids.filter((k) => k != null));
+  return e;
+}
+async function renderSync() {
+  const r = await chrome.runtime.sendMessage({ type: 'sync-info' }).catch(() => null);
+  const pill = $('#syncPill');
+  const box = $('#syncInfo');
+  box.replaceChildren();
+  pill.className = 'pill ' + (r?.linked ? (r.state?.error ? 'sim' : 'real') : 'off');
+  pill.textContent = r?.linked ? (r.state?.error ? 'Erreur' : 'Reliée') : 'Non reliée';
+  $('#syncToken').placeholder = r?.linked ? '•••••••• (jeton enregistré, vide = délier)' : 'Jeton GitHub (Gists)';
+  $('#syncSave').textContent = r?.linked ? 'Changer' : 'Relier';
+  if (r?.player) {
+    const copy = el('button', { type: 'button', class: 'link' }, 'copier');
+    copy.addEventListener('click', () => navigator.clipboard.writeText(r.player).then(() => (copy.textContent = 'copié ✔')));
+    box.append(el('p', {}, 'Ton identifiant joueur : ', el('code', {}, r.player), ' ', copy));
+  }
+  if (!r?.linked) return;
+  if (r.state?.error) box.append(el('p', { style: 'color: var(--bad)' }, r.state.error));
+  const devs = r.state?.devices ?? [];
+  if (devs.length) box.append(el('p', {}, 'Boosters comptés : ' + devs.map((d) => `${d.name} ${d.count}`).join(' · ')));
+  if (r.gist) {
+    const a = el('a', { href: `https://gist.github.com/${r.gist}`, target: '_blank', rel: 'noopener' }, 'voir le Gist');
+    box.append(el('p', {}, 'Gist : ', el('code', {}, r.gist.slice(0, 10) + '…'), ' · ', a));
+  }
+}
+$('#syncSave').addEventListener('click', async () => {
+  const token = $('#syncToken').value.trim();
+  const { syncToken } = await chrome.storage.local.get('syncToken');
+  if (!token && !syncToken) return;
+  $('#syncSave').disabled = true;
+  $('#syncInfo').textContent = token ? 'Connexion à GitHub…' : 'Synchro coupée.';
+  const res = await chrome.runtime.sendMessage({ type: 'sync-setup', token }).catch((e) => ({ error: e.message }));
+  $('#syncToken').value = '';
+  $('#syncSave').disabled = false;
+  await renderSync();
+  if (res?.error) $('#syncInfo').prepend(el('p', { style: 'color: var(--bad)' }, res.error));
+});
+
 $('#version').textContent = chrome.runtime.getManifest().version;
+renderSync();
 bindSettings();
 renderStatus();
 renderUpdate();

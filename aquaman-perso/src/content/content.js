@@ -4455,10 +4455,9 @@
   // The script also looks for a new version every 10 minutes (the script managers only look once a day), and offers
   // it in a box at the bottom of the screen; the extension tells it with its notification and its window.
   const UPDATE_EVERY = 10 * 60e3;
-  const SCRIPT_URL = '';
+  const SCRIPT_URL = 'https://github.com/TeddySbot/poseidon/releases/latest/download/aquaman-perso.user.js';
   let updateAt = 0;
   function lookForUpdate() {
-    return; // version perso : pas de mise à jour automatique
     if (owner !== 'userscript' || Date.now() - updateAt < UPDATE_EVERY) return;
     updateAt = Date.now();
     send({ type: 'check-update' }).then((res) => !stopped && showUpdate(res?.update));

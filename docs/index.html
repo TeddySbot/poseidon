@@ -268,7 +268,7 @@
         </div>
         <div class="chips">
           <span class="chip"><b>💻 PC</b> · Chrome, Brave, Edge, Opera, Vivaldi</span>
-          <span class="chip">📱 Téléphone : pas encore</span>
+          <a class="chip" href="#telephone" style="text-decoration:none">📱 <b>Téléphone</b> · Android, iPhone</a>
         </div>
       </header>
 
@@ -302,6 +302,44 @@
         <div class="note warn">Si tu as déjà l’Aquaman d’origine, retire-le d’abord dans <code>chrome://extensions</code> : les deux en même temps feraient tout en double.</div>
       </section>
 
+      <section id="telephone">
+        <h2>Installer sur téléphone</h2>
+        <div class="grid">
+          <div class="card">
+            <h3 style="margin:0 0 8px">🤖 Android · Firefox</h3>
+            <ol style="margin:0;padding-left:20px;color:#d4d4d8">
+              <li>Installe <b>Firefox</b> depuis le Play Store.</li>
+              <li>Menu ⋮ → <b>Modules complémentaires</b> → <b>Tampermonkey</b> → <b>Ajouter</b>.</li>
+              <li>Ouvre <a href="https://github.com/TeddySbot/poseidon/releases/latest/download/aquaman-perso.user.js">aquaman-perso.user.js</a> dans Firefox → <b>Installer</b>.</li>
+              <li>Ouvre <a href="https://poseidon-scans.net/jeu">poseidon-scans.net/jeu</a>.</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3 style="margin:0 0 8px">🍎 iPhone / iPad · Safari</h3>
+            <ol style="margin:0;padding-left:20px;color:#d4d4d8">
+              <li>Installe l’app gratuite <b>Userscripts</b> (App Store).</li>
+              <li>Réglages → Safari → Extensions → <b>Userscripts</b> : active-la pour poseidon-scans.net.</li>
+              <li>Ouvre <a href="https://github.com/TeddySbot/poseidon/releases/latest/download/aquaman-perso.user.js">aquaman-perso.user.js</a> dans Safari → icône Userscripts → <b>Installer</b>.</li>
+              <li>Ouvre <a href="https://poseidon-scans.net/jeu">poseidon-scans.net/jeu</a>.</li>
+            </ol>
+          </div>
+        </div>
+        <div class="note warn">Sur téléphone, tu as toutes les fonctions sur le site, mais pas les Alertes Marché ni la Vente auto : elles ont besoin de l’extension pour PC. Chrome sur téléphone n’accepte pas les scripts.</div>
+      </section>
+
+      <section>
+        <h2>Relier tes appareils</h2>
+        <div class="card">
+          <p style="margin:0 0 10px;color:#d4d4d8">La <b>garantie anti-malchance</b> et tes <b>séries favorites</b> peuvent être les mêmes sur ton PC, ton téléphone et même ton serveur. Il n’y a aucun serveur à installer : tout passe par un <b>Gist privé de ton compte GitHub</b>.</p>
+          <ol style="margin:0;padding-left:20px;color:#d4d4d8">
+            <li>GitHub → Settings → Developer settings → <b>Fine-grained token</b>, avec seulement <b>Account permissions → Gists : Read and write</b>.</li>
+            <li>PC : fenêtre d’Aquaman → Accueil → <b>Synchro entre appareils</b> → colle le jeton → <b>Relier</b>.</li>
+            <li>Téléphone : <b>Plus → Réglages</b> → colle le même jeton → <b>Relier</b>.</li>
+            <li>Un script ouvre tes boosters sur un serveur ? Ajoute-lui <a href="https://github.com/TeddySbot/poseidon/blob/main/tools/README.md">aquaman_sync.py</a> (une ligne) : ses ouvertures comptent aussi.</li>
+          </ol>
+        </div>
+      </section>
+
       <section>
         <h2>Ce que ça ajoute</h2>
         <div class="grid">
@@ -309,7 +347,7 @@
           <div class="feat new"><div class="ic">🤖</div><b>Vente auto</b><span>Met en vente tes doublons Communes, Rares et Épiques recherchés, au bon prix, avec un plancher par rareté. Elle démarre en mode Simulation.</span></div>
           <div class="feat new"><div class="ic">📊</div><b>Statistiques</b><span>Perles rapportées par la vente auto, graphique sur 14 jours, historique, export CSV.</span></div>
           <div class="feat"><div class="ic">🎁</div><b>Quel booster ouvrir ?</b><span>Taux de drop et prix pour une rareté, un perso, une série ou tes cartes manquantes.</span></div>
-          <div class="feat"><div class="ic">🛡</div><b>Garantie anti-malchance</b><span>Boosters restants avant la SSR (60) et l’UR (190), suivi de la SEC.</span></div>
+          <div class="feat new"><div class="ic">🛡</div><b>Garantie anti-malchance</b><span>Boosters restants avant la SSR (60) et l’UR (190), suivi de la SEC. Synchronisée entre ton PC, ton téléphone et ton serveur.</span></div>
           <div class="feat"><div class="ic">🏆</div><b>Classement des amis</b><span>Cartes uniques et séries complètes, toi et tes amis.</span></div>
           <div class="feat"><div class="ic">🟢</div><b>Échanges</b><span>Pastille verte si tu as déjà la carte, rouge si elle te manque.</span></div>
           <div class="feat"><div class="ic">🔎</div><b>Qui a cette carte ?</b><span>Détenteurs, vendeurs au marché, et ceux de tes amis qui l’ont.</span></div>
@@ -326,7 +364,7 @@
         </details>
         <details>
           <summary>Quelles données sont envoyées ?</summary>
-          <p>Aucune, à personne. L’extension lit le jeu avec ta session sur poseidon-scans.net, comme le site lui-même. Tes listes, statistiques et réglages restent sur ton PC. Le seul autre contact est GitHub, pour lire le numéro de la dernière version. Cette version est l’Aquaman de A‑Finch13 débarrassé de son serveur et de sa télémétrie.</p>
+          <p>Aucune, à personne. L’extension lit le jeu avec ta session sur poseidon-scans.net, comme le site lui-même. Tes listes, statistiques et réglages restent sur ton PC. Le seul autre contact est GitHub : il sert à lire le numéro de la dernière version et, si tu l’actives, à ta synchro dans ton propre Gist privé. Cette version est l’Aquaman de A‑Finch13 débarrassé de son serveur et de sa télémétrie.</p>
         </details>
         <details>
           <summary>C’est autorisé par le site ?</summary>
@@ -338,7 +376,7 @@
         </details>
         <details>
           <summary>Et sur téléphone ?</summary>
-          <p>Pas pour l’instant : cette version n’existe qu’en extension pour ordinateur. Chrome sur téléphone n’accepte de toute façon pas les extensions.</p>
+          <p>Oui, avec le script (voir « Installer sur téléphone »). Il se met à jour tout seul. Les Alertes Marché et la Vente auto restent réservées à l’extension pour PC.</p>
         </details>
         <details>
           <summary>Comment désinstaller ?</summary>
