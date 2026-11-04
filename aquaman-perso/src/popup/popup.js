@@ -1,16 +1,34 @@
+// Fenêtre d'Aquaman perso : onglets, accueil, réglages, mises à jour.
 import { ORIGIN, getSettings, setSettings } from '../lib/aquaman.js';
+import { RELEASES_URL, REPO } from '../lib/update.js';
 
 const $ = (s) => document.querySelector(s);
 
-// Liens : uniquement des pages du site (via le service de fond).
+// ---------- onglets (onglet retenu entre deux ouvertures) ----------
+export function showTab(t) {
+  document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === t));
+  for (const p of ['home', 'alertes', 'vente']) $(`#pane-${p}`).hidden = p !== t;
+  try {
+    localStorage.setItem('aqm-tab', t);
+  } catch {}
+}
+document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
+try {
+  const t = localStorage.getItem('aqm-tab');
+  if (t) showTab(t);
+} catch {}
+
+// ---------- liens : pages du site, ou page des versions ----------
 document.addEventListener('click', async (e) => {
   const link = e.target.closest('[data-open]');
   if (!link) return;
   e.preventDefault();
-  await chrome.runtime.sendMessage({ type: 'open', href: link.dataset.open });
+  const href = link.dataset.open === 'releases' ? RELEASES_URL : link.dataset.open;
+  await chrome.runtime.sendMessage({ type: 'open', href });
   window.close();
 });
 
+// ---------- réglages ----------
 async function bindSettings() {
   const settings = await getSettings();
   for (const box of document.querySelectorAll('[data-setting]')) {
@@ -19,12 +37,54 @@ async function bindSettings() {
   }
 }
 
+// ---------- boosters ----------
 async function renderStatus() {
-  const text = await chrome.action.getBadgeText({});
+  const { boostersPending } = await chrome.storage.local.get('boostersPending');
   $('#status').textContent =
-    text === '!' ? `Connecte-toi sur ${ORIGIN.replace('https://', '')} pour voir tes boosters.` : text ? `${text} booster${text === '1' ? '' : 's'} à ouvrir sur l’accueil du jeu.` : 'Aucun booster à ouvrir pour le moment.';
+    boostersPending === -1
+      ? `Connecte-toi sur ${ORIGIN.replace('https://', '')} pour voir tes boosters.`
+      : boostersPending > 0
+        ? `${boostersPending} booster${boostersPending === 1 ? '' : 's'} à ouvrir sur l’accueil du jeu.`
+        : 'Aucun booster à ouvrir pour le moment.';
 }
+
+// ---------- mises à jour ----------
+const ago = (t) => (t ? new Date(t).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
+
+async function renderUpdate() {
+  const { githubToken, updateState: st } = await chrome.storage.local.get(['githubToken', 'updateState']);
+  $('#token').placeholder = githubToken ? '•••••••• (jeton enregistré)' : 'github_pat_…';
+  $('#update').hidden = !st?.update;
+  if (st?.update) $('#update-version').textContent = st.update.version;
+  const info = $('#updateInfo');
+  info.style.color = st?.error ? 'var(--bad)' : '';
+  info.textContent = !githubToken
+    ? `Sans jeton, pas de vérification. Dépôt : ${REPO}.`
+    : st?.error
+      ? st.error
+      : st?.checkedAt
+        ? st.update
+          ? `Version ${st.update.version} disponible (vérifié le ${ago(st.checkedAt)}).`
+          : `À jour (vérifié le ${ago(st.checkedAt)}).`
+        : 'Pas encore vérifié.';
+}
+
+$('#tokenSave').addEventListener('click', async () => {
+  const v = $('#token').value.trim();
+  if (v) await chrome.storage.local.set({ githubToken: v });
+  else await chrome.storage.local.remove(['githubToken', 'updateState']);
+  $('#token').value = '';
+  $('#updateInfo').textContent = v ? 'Vérification…' : 'Jeton retiré.';
+  if (v) await chrome.runtime.sendMessage({ type: 'check-update', force: true }).catch(() => {});
+  renderUpdate();
+});
+$('#checkNow').addEventListener('click', async () => {
+  $('#updateInfo').textContent = 'Vérification…';
+  await chrome.runtime.sendMessage({ type: 'check-update', force: true }).catch(() => {});
+  renderUpdate();
+});
 
 $('#version').textContent = chrome.runtime.getManifest().version;
 bindSettings();
 renderStatus();
+renderUpdate();

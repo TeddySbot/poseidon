@@ -302,7 +302,8 @@
           }
         }
       }
-      if (path && !res.ok && method === 'POST' && ORDERS.test(path) && res.status !== 429) {
+      // (Aquaman perso : les ventes de la Vente auto, marquées aqmVente, gardent leur propre logique)
+      if (path && !res.ok && method === 'POST' && ORDERS.test(path) && res.status !== 429 && !init?.aqmVente) {
         const order = typeof init?.body === 'string' ? JSON.parse(init.body) : null;
         if (order?.side === 'sell' && order.copyId)
           res
