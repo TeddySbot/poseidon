@@ -30,15 +30,30 @@ Après une modification des fichiers : cliquer sur **↻** sur la carte de l'ext
 4. **Rien à vendre** : l'extension attend. Elle relit doucement tes doubles non recherchés (1 toutes les 30 s) et vend dès qu'un devient recherché.
 
 ## Fenêtre
-- **⏹ TOUT ARRÊTER** : coupe tout immédiatement, même au milieu d'un cycle. Les ventes déjà en cours restent en place. Décocher « Activer » fait la même chose.
-- **Arrêt automatique** après 5 erreurs de suite : l'extension s'arrête toute seule au lieu d'insister.
-- **Cases Commune / Rare / Épique** : décocher une rareté pour ne plus la mettre en vente. Ses ventes en cours partent à la rotation suivante.
-- **Activer** et **Mode simulation**. La simulation est cochée par défaut : l'extension montre ce qu'elle vendrait et à quel prix, sans rien faire.
-- Activer, ou changer de mode, lance tout de suite un cycle complet.
-- **Cycle complet maintenant** : retire tout et remet en vente.
-- **Refaire l'inventaire** : relit toute la collection.
-- **Tout retirer et arrêter** (deux clics) : coupe l'automatisation et retire toutes les ventes à prix fixe.
-- Badge : `SIM` = simulation, chiffre = ventes en cours, `!` = erreur.
+- **En haut**, toujours visibles :
+  - le bouton **▶ Démarrer / ⏹ Tout arrêter** : l'arrêt est immédiat, même au milieu d'un cycle, et les ventes déjà en cours restent ;
+  - le choix **Simulation / Réel** ;
+  - l'**état en direct** : activité, barre de progression de l'inventaire, ventes en cours / 50, doubles recherchés, prochaine rotation, erreurs.
+- **Onglet Activité** : la dernière simulation (cartes, serials, prix) et le journal.
+- **Onglet Réglages** :
+  - raretés à vendre (cases) et prix plancher de chacune ;
+  - nombre maximum de ventes en même temps ;
+  - vitesse.
+- **Onglet Actions** :
+  - 📊 Statistiques ;
+  - 🔄 Cycle complet maintenant ;
+  - 🗂️ Refaire l'inventaire ;
+  - ⛔ Tout retirer et arrêter (deux clics).
+- **Arrêt automatique** après 5 erreurs de suite.
+- Badge sur l'icône : `SIM` = simulation, un chiffre = ventes en cours, `!` = erreur.
+
+## Vitesse (réglable dans la fenêtre)
+- **Lectures** (inventaire, comptage, prix) : Prudent (3 s), Normal (1,2 s, par défaut), Rapide (0,6 s), Très rapide (0,3 s) entre deux lectures.
+  - Inventaire complet : environ 60 / 25 / 12 / 6 min.
+  - Comptage : environ 17 / 7 / 3,5 / 2 min.
+- **Ventes + retraits max par 30 s** : de 1 à 29 (25 par défaut). Ta limite est de 30.
+- Remplir 50 ventes : environ 70 s en Normal / 25, environ 40 s en Très rapide / 29.
+- Si le site freine (erreur 429), l'extension se met en pause toute seule. Reviens alors à une vitesse plus basse.
 
 ## Statistiques (bouton 📊 dans la fenêtre)
 Ouvre une page dans un onglet :

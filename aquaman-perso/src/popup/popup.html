@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Aquaman (perso)</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="head">
+      <img src="../../icons/icon48.png" alt="" width="36" height="36" />
+      <div>
+        <h1>Aquaman (perso)</h1>
+        <p class="muted">Version <span id="version"></span></p>
+      </div>
+    </header>
+
+
+    <section class="status">
+      <p id="status" class="muted">…</p>
+    </section>
+
+    <nav class="actions">
+      <button type="button" class="btn main" data-open="/jeu">Ouvrir le jeu</button>
+      <button type="button" class="btn" data-open="/jeu#aqm-visite">Visite guidée</button>
+      <button type="button" class="btn" data-open="/jeu#aqm-nouveautes">Nouveautés</button>
+    </nav>
+
+    <section class="settings">
+      <h2>Notifications</h2>
+      <label class="switch"><input type="checkbox" data-setting="notifyBoosters" /> <span>Nouveaux boosters à ouvrir</span></label>
+      <label class="switch"><input type="checkbox" data-setting="notifyUpdated" /> <span>Nouvelle version installée (notification et nouveautés sur le site)</span></label>
+      <h2 class="gap">Confidentialité</h2>
+      <p class="muted">Version perso : aucun partage, aucun serveur externe, aucune mise à jour automatique. Les données restent dans ce navigateur.</p>
+    </section>
+
+    <footer class="foot"><span>D’après Aquaman de A-Finch13 (licence MIT)</span></footer>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

@@ -23,10 +23,9 @@ const DEFAULT_SETTINGS = {
   rotateMin: 60,
   checkMin: 2,
   scanHours: 24,
-  writeMax: 25,
-  writeWindowSec: 35,
-  getDelayMs: 1500,                  // pause entre deux lectures pendant un cycle
-  scanDelayMs: 3000,                 // pause entre deux lectures pendant l'inventaire
+  writeMax: 25,                      // ventes + retraits max par fenêtre (réglable, 29 max)
+  writeWindowSec: 31,                // fenêtre de 30 s + 1 s de marge
+  readDelayMs: 1200,                 // pause entre deux lectures (réglable : 0,2 à 5 s)
   countAuctions: true                // les enchères en cours comptent dans les 50 emplacements
 };
 
@@ -69,6 +68,11 @@ function log(kind, text) {
 }
 const sim = () => S.settings.dryRun;
 
+// ---------- vitesse (réglable dans la fenêtre) ----------
+const readDelay = () => Math.min(5000, Math.max(200, Number(S.settings.readDelayMs) || 1200));
+const writeMax = () => Math.min(29, Math.max(1, Math.floor(Number(S.settings.writeMax) || 25)));
+const WRITE_DELAY = 150;   // petite pause avant une vente/un retrait : le vrai frein est la limite par 30 s
+
 // ---------- statistiques ----------
 const COMMISSION = 0.05;   // commission du marché (affichée par le site)
 const netOf = price => Math.round(price * (1 - COMMISSION) * 100) / 100;
@@ -99,12 +103,12 @@ function saveCounts(counts) {
 // Comptage rapide de toute la collection (série par série, une lecture toutes les 0,6 s)
 async function countAll() {
   S.status.counting = { done: 0, total: 0 };
-  try { setPerles((await api("/me", { delay: 600 })).perles); } catch (e) { if (e.code === "stopped") throw e; }
-  const series = ((await api("/series", { delay: 600 })).series || []).filter(x => x.owned > 0);
+  try { setPerles((await api("/me", { delay: readDelay() })).perles); } catch (e) { if (e.code === "stopped") throw e; }
+  const series = ((await api("/series", { delay: readDelay() })).series || []).filter(x => x.owned > 0);
   S.status.counting.total = series.length;
   const counts = emptyCounts();
   for (const se of series) {
-    const list = (await api(`/cards?owned=1&manga=${encodeURIComponent(se.id)}`, { delay: 600 })).cards || [];
+    const list = (await api(`/cards?owned=1&manga=${encodeURIComponent(se.id)}`, { delay: readDelay() })).cards || [];
     for (const c of list) addCount(counts, c);
     S.status.counting.done++;
     if (S.status.counting.done % 20 === 0) await save();
@@ -217,7 +221,7 @@ async function tabFetch(path, method, body) {
 
 async function api(path, { method = "GET", body, delay } = {}) {
   if (stopFlag) throw new ApiError(0, "stopped", "Arrêtée");
-  await waitUntil(Math.max(lastReq + (delay ?? S.settings.getDelayMs), backoffUntil));
+  await waitUntil(Math.max(lastReq + (delay ?? (method === "GET" ? readDelay() : WRITE_DELAY)), backoffUntil));
   lastReq = Date.now();
   let r;
   try {
@@ -248,8 +252,8 @@ async function writeSlot() {
   for (;;) {
     const now = Date.now();
     S.run.writes = (S.run.writes || []).filter(t => now - t < W);
-    if (S.run.writes.length < S.settings.writeMax) { S.run.writes.push(now); return; }
-    S.status.phase = "Pause (limite 30 actions / 30 s)";
+    if (S.run.writes.length < writeMax()) { S.run.writes.push(now); return; }
+    S.status.phase = `Pause (limite ${writeMax()} actions / 30 s)`;
     await save();
     await waitUntil(S.run.writes[0] + W + 300);
   }
@@ -265,7 +269,7 @@ function startScan() {
 
 // Avance l'inventaire pendant ~budgetMs, puis rend la main.
 async function scanStep(budgetMs = 20_000) {
-  const sc = S.inv.scan, end = Date.now() + budgetMs, cards = S.inv.cards, d = S.settings.scanDelayMs;
+  const sc = S.inv.scan, end = Date.now() + budgetMs, cards = S.inv.cards, d = readDelay();
 
   if (sc.phase === "copies") {
     // /copies : les 2000 premiers exemplaires (triés de la plus rare à la plus commune)
@@ -330,7 +334,7 @@ async function refreshCard(id, delay) {
     const j = await api(`/cards/${id}`, { delay });
     const prev = S.inv.cards[id] || {};
     S.inv.cards[id] = { ...prev, id, name: j.name, rarity: j.rarity, series: j.series?.title,
-      wants: j.wants || 0, copies: (j.copies || []).map(mapCopy), checkedAt: Date.now() };
+      wants: j.wants || 0, copies: (j.copies || []).map(mapCopy), checkedAt: Date.now(), copiesAt: Date.now() };
   } catch (e) {
     if (e.status === 404) delete S.inv.cards[id]; else throw e;
   }
@@ -375,7 +379,8 @@ async function fill(free, listedCardIds, plan) {
   if (free <= 0) return 0;
   const cands = pickCandidates(S.inv.cards, { listedCardIds, skip: S.run.skip, rarities: S.settings.rarities });
   let placed = 0, looked = 0;
-  for (const { card, copy } of cands) {
+  for (const cand of cands) {
+    const card = cand.card;
     if (placed >= free || looked >= free * 3 + 10) break;   // évite de lire des centaines de prix
     looked++;
     S.status.phase = `Prix de ${card.name}…`;
@@ -386,30 +391,49 @@ async function fill(free, listedCardIds, plan) {
     const p = computePrice(m, card.rarity, S.settings.floors);
     if (!p.price) { S.run.skip[card.id] = Date.now() + 3600_000; log("skip", `${card.name} ignorée : ${p.reason}`); continue; }
 
+    // Exemplaires relus depuis plus de 15 min (tu as pu vendre, recycler, échanger…) : on relit avant de vendre
+    if (!sim() && Date.now() - (card.copiesAt || 0) > 15 * 60_000) await refreshCard(card.id);
+    let copy = sellableCopy(S.inv.cards[card.id]);
+    if (!copy) continue;                                         // plus en double
+
     const line = { cardId: card.id, name: card.name, rarity: card.rarity, serial: copy.serial, price: p.price, source: p.source, wants: card.wants };
     if (sim()) { plan.list.push(line); placed++; listedCardIds.add(card.id); continue; }
 
-    await writeSlot();
-    try {
-      const res = await api("/market/orders", { method: "POST", body: { cardId: card.id, side: "sell", price: p.price, copyId: copy.id } });
-      listedCardIds.add(card.id); placed++;
-      if (res?.filled) {
-        log("sold", `Vendue tout de suite : ${card.name} #${copy.serial} à ${res.filled.price ?? p.price} Perles`);
-        recordSale({ cardId: card.id, name: card.name, rarity: card.rarity, serial: copy.serial }, res.filled.price ?? p.price);
-        card.copies = card.copies.filter(c => c.id !== copy.id);
-      } else {
-        copy.locked = true;
-        S.run.botCopies[copy.id] = { at: Date.now(), price: p.price, cardId: card.id };
-        log("list", `En vente : ${card.name} (${rn(card.rarity)} #${copy.serial}) à ${p.price} Perles — ${p.source}`);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await writeSlot();
+      try {
+        const res = await api("/market/orders", { method: "POST", body: { cardId: card.id, side: "sell", price: p.price, copyId: copy.id } });
+        const c = S.inv.cards[card.id];
+        listedCardIds.add(card.id); placed++;
+        if (res?.filled) {
+          log("sold", `Vendue tout de suite : ${card.name} #${copy.serial} à ${res.filled.price ?? p.price} Perles`);
+          recordSale({ cardId: card.id, name: card.name, rarity: card.rarity, serial: copy.serial }, res.filled.price ?? p.price);
+          if (c) c.copies = c.copies.filter(x => x.id !== copy.id);
+        } else {
+          copy.locked = true;
+          S.run.botCopies[copy.id] = { at: Date.now(), price: p.price, cardId: card.id };
+          log("list", `En vente : ${card.name} (${rn(card.rarity)} #${copy.serial}) à ${p.price} Perles — ${p.source}`);
+        }
+        setPerles(res?.perles);
+        S.run.errStreak = 0;
+        break;
+      } catch (e) {
+        if (["slow_down", "auth", "no_tab", "origin", "stopped"].includes(e.code)) throw e;
+        // L'exemplaire n'est plus à toi (vendu, recyclé, échangé…) : on relit la carte et on réessaie une fois
+        if (attempt === 0 && /appartien|plus à toi|own|introuvable|not.?found/i.test(e.code + " " + e.message)) {
+          await refreshCard(card.id);
+          copy = sellableCopy(S.inv.cards[card.id]);
+          if (copy) continue;
+          log("skip", `${card.name} : plus en double, ignorée.`);
+          break;
+        }
+        S.run.skip[card.id] = Date.now() + 3600_000;
+        log("error", `Vente refusée pour ${card.name} : ${e.message}`);
+        // Un refus propre à une carte (400/404/409/422) ne déclenche pas l'arrêt automatique : on passe à la suivante
+        if (![400, 404, 409, 422].includes(e.status)) await countError();
+        if (/limit|max|trop|slot|emplacement/i.test(e.code + " " + e.message)) return placed;  // plus de place côté site
+        break;
       }
-      setPerles(res?.perles);
-      S.run.errStreak = 0;
-    } catch (e) {
-      if (["slow_down", "auth", "no_tab", "origin", "stopped"].includes(e.code)) throw e;
-      S.run.skip[card.id] = Date.now() + 3600_000;
-      log("error", `Vente refusée pour ${card.name} : ${e.message}`);
-      await countError();
-      if (/limit|max|trop|slot|emplacement/i.test(e.code + " " + e.message)) break;  // plus de place côté site
     }
     await save();
   }
@@ -431,7 +455,7 @@ async function withdrawAll(mine, plan) {
     } catch (e) {
       if (["slow_down", "auth", "no_tab", "origin", "stopped"].includes(e.code)) throw e;
       log("error", `Retrait impossible pour ${l.card.name} : ${e.message}`);
-      await countError();
+      if (![400, 404, 409, 422].includes(e.status)) await countError();
     }
   }
   if (!sim() && n) log("info", `${n} ventes retirées.`);
@@ -476,7 +500,7 @@ async function refreshWants() {
     .filter(c => SELL_RARITIES.includes(c.rarity) && !(c.wants > 0) && sellableCopy(c) && Date.now() - (c.checkedAt || 0) > 30 * 60_000)
     .sort((a, b) => (a.checkedAt || 0) - (b.checkedAt || 0))[0];
   if (!stale) return;
-  await refreshCard(stale.id, S.settings.scanDelayMs);
+  await refreshCard(stale.id, readDelay());
   if (S.inv.cards[stale.id]?.wants > 0) { log("info", `${stale.name} est maintenant recherchée.`); S.run.lastCheck = 0; }
 }
 
