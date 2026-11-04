@@ -1,7 +1,5 @@
-// Nouvelle version d'Aquaman perso, lue sur le dépôt GitHub privé de Teddy.
-// Le dépôt étant privé, il faut un jeton GitHub en lecture seule (fine-grained, « Contents: Read-only » sur ce seul
-// dépôt), collé dans la fenêtre de l'extension. Il reste dans ce navigateur et n'est envoyé qu'à api.github.com.
-// Rien n'est installé tout seul : l'extension prévient, la mise à jour se fait par « git pull » ou avec le zip.
+// Nouvelle version d'Aquaman perso, lue sur le dépôt GitHub public de Teddy (api.github.com, sans compte ni jeton).
+// Rien n'est installé tout seul : l'extension prévient, la mise à jour se fait avec le zip ou « git pull ».
 export const REPO = 'TeddySbot/poseidon';
 export const BRANCH = 'main';
 export const MANIFEST_PATH = 'aquaman-perso/manifest.json';
@@ -16,19 +14,18 @@ export const newer = (a, b) => {
   return false;
 };
 
-// { update: {version} | null, checkedAt, error } ; null quand aucun jeton n'est enregistré.
+// { update: {version} | null, checkedAt, error }
 export async function checkUpdate(force = false) {
-  const { githubToken, updateState } = await chrome.storage.local.get(['githubToken', 'updateState']);
-  if (!githubToken) return null;
+  const { updateState } = await chrome.storage.local.get('updateState');
   if (!force && updateState && Date.now() - (updateState.checkedAt ?? 0) < EVERY) return updateState;
   let state;
   try {
     const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${MANIFEST_PATH}?ref=${BRANCH}`, {
-      headers: { accept: 'application/vnd.github.raw+json', authorization: `Bearer ${githubToken}`, 'x-github-api-version': '2022-11-28' },
+      headers: { accept: 'application/vnd.github.raw+json', 'x-github-api-version': '2022-11-28' },
       cache: 'no-store'
     });
-    if (res.status === 401 || res.status === 403) throw new Error('Jeton refusé par GitHub (expiré ou sans accès au dépôt).');
-    if (res.status === 404) throw new Error('Dépôt introuvable : le jeton n’a pas accès à ' + REPO + '.');
+    if (res.status === 403 || res.status === 429) throw new Error('GitHub limite les vérifications pour le moment : nouvel essai plus tard.');
+    if (res.status === 404) throw new Error(`Dépôt ${REPO} introuvable (encore privé ?).`);
     if (!res.ok) throw new Error(`GitHub répond ${res.status}.`);
     const remote = String((await res.json()).version ?? '');
     const mine = chrome.runtime.getManifest().version;

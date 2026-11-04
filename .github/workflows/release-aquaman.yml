@@ -39,13 +39,14 @@ jobs:
         run: |
           cd aquaman-perso
           zip -r "../aquaman-perso-${{ steps.ver.outputs.version }}.zip" . -x '.*'
+          cp "../aquaman-perso-${{ steps.ver.outputs.version }}.zip" ../aquaman-perso.zip
 
       - name: Publier la release
         if: steps.exists.outputs.found == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "aquaman-v${{ steps.ver.outputs.version }}" "aquaman-perso-${{ steps.ver.outputs.version }}.zip" \
+          gh release create "aquaman-v${{ steps.ver.outputs.version }}" "aquaman-perso-${{ steps.ver.outputs.version }}.zip" aquaman-perso.zip \
             --target "$GITHUB_SHA" \
             --title "Aquaman perso ${{ steps.ver.outputs.version }}" \
             --notes "Dézippe dans le dossier de l'extension (en remplaçant les fichiers), puis clique sur ↻ sous Aquaman dans chrome://extensions. Avec Git : git pull, puis ↻."
