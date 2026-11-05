@@ -16,7 +16,9 @@ export const DEFAULTS = {
   syncFavorites: false,
   syncWants: false,
   syncMarket: false,
-  sharePulls: false
+  sharePulls: false,
+  // Version perso : lecture seule de la base publique du relais de l'auteur (rien n'y est envoyé). false pour couper.
+  relayRead: true
 };
 // Jamais de partage public. La garantie anti-malchance et les favoris se synchronisent seulement entre TES appareils,
 // par ton Gist GitHub privé, quand un jeton est enregistré (voir « synchro entre appareils » plus bas).
@@ -76,6 +78,54 @@ function cached(key, ttl, load) {
 // Forgets the cached answers whose key starts with one of the prefixes.
 function forget(...prefixes) {
   for (const key of [...memo.keys()]) if (prefixes.some((p) => key.startsWith(p))) memo.delete(key);
+  stale.push({ prefixes, at: Date.now() });
+  if (stale.length > 50) stale.shift();
+  chrome.storage.local.set({ keepStaleAt: Date.now(), keepStale: stale }).catch?.(() => {});
+}
+
+// ---------- version perso : réponses gardées sur le PC ----------
+// Ta collection, tes recherches et les séries sont gardées dans le navigateur (chrome.storage.local). Quand le service
+// de fond se réveille (Chrome l'endort après ~30 s), elles s'affichent tout de suite au lieu d'attendre le site ; si
+// elles ont plus de `ttl`, elles sont relues en arrière-plan pour la fois suivante. Au-delà de KEEP_MAX, ou après
+// forget() (booster ouvert, achat, vente, échange, recherche modifiée), la lecture attend de nouveau le site.
+const KEEP = 'keep:';
+const KEEP_MAX = 15 * 60e3;
+let stale = [];
+let staleLoaded = null;
+const loadStale = () =>
+  (staleLoaded ??= chrome.storage.local.get('keepStale').then((r) => (stale = Array.isArray(r?.keepStale) ? r.keepStale : [])).catch(() => {}));
+const isStale = (key, at) => stale.some((f) => f.at >= at && f.prefixes.some((p) => key.startsWith(p)));
+
+function kept(key, ttl, load) {
+  const hit = memo.get(key);
+  if (hit && Date.now() - hit.at < ttl) return hit.promise;
+  const fetchFresh = () => {
+    const started = Date.now(); // un forget() pendant la lecture la rend « à relire »
+    const p = load().then(async (data) => {
+      try {
+        await chrome.storage.local.set({ [KEEP + key]: { at: started, data } });
+      } catch {}
+      return data;
+    });
+    memo.set(key, { at: Date.now(), promise: p });
+    p.catch(() => memo.get(key)?.promise === p && memo.delete(key));
+    return p;
+  };
+  const promise = (async () => {
+    await loadStale();
+    let saved = null;
+    try {
+      saved = (await chrome.storage.local.get(KEEP + key))[KEEP + key] ?? null;
+    } catch {}
+    const age = saved ? Date.now() - saved.at : Infinity;
+    if (!saved || age > KEEP_MAX || isStale(key, saved.at)) return fetchFresh();
+    if (age > ttl) fetchFresh().catch(() => {}); // relue en arrière-plan, pour la prochaine fois
+    else memo.set(key, { at: saved.at, promise: Promise.resolve(saved.data) });
+    return saved.data;
+  })();
+  memo.set(key, { at: Date.now(), promise }); // évite deux lectures en même temps (remplacé dès la réponse)
+  promise.catch(() => memo.get(key)?.promise === promise && memo.delete(key));
+  return promise;
 }
 
 // Id of the logged-in player (read again after a minute: another account may have logged in meanwhile).
@@ -132,7 +182,12 @@ function showcase(id, ttl = 5 * 60e3) {
     return sc;
   });
 }
-const myShowcase = async (ttl = 60e3) => showcase(await myId(), ttl);
+const myShowcase = async (ttl = 60e3) => {
+  const id = await myId();
+  const sc = await kept(`showcase:${id}`, ttl, () => readShowcase(id));
+  showcases.set(id, sc);
+  return sc;
+};
 
 // File name of a card image: the same key as the address of the image shown by the site.
 export function imageKey(src) {
@@ -443,6 +498,18 @@ export const PITY = { SSR: 60, UR: 190 };
 // sans aucun accès réseau ; les fonctions concernées retombent sur les données gardées dans le navigateur.
 const offline = async () => ({ ok: false, status: 0, json: async () => ({}) });
 
+// Version perso : lecture seule de la base publique du relais (GET, sans cookie ni identifiant). Seuls /packs,
+// /pulls, /holdings?card= et /players sont lus ; aucun envoi n'est rebranché. 6 s au plus, sinon on s'en passe.
+const RELAY = 'https://aquaman-relay.finch-arhold-git.workers.dev';
+async function relayGet(path) {
+  if ((await getSettings()).relayRead === false) return offline();
+  try {
+    return await fetch(RELAY + path, { method: 'GET', credentials: 'omit', referrerPolicy: 'no-referrer', signal: AbortSignal.timeout(6000) });
+  } catch {
+    return offline();
+  }
+}
+
 // ---------- synchro entre appareils : ton Gist GitHub privé ----------
 // Chaque appareil (PC, téléphone, serveur) écrit SON fichier dans un Gist secret de ton compte GitHub :
 //   pity-<appareil>.json  { player, device, name, events: [{ id, at, top }], at }   boosters ouverts sur cet appareil
@@ -706,12 +773,12 @@ export async function setPityRules(rules) {
 
 // Series of the game with the player's progress: [{ id, slug, title, owned, total }].
 export function seriesList() {
-  return cached('series', 2 * 60e3, async () => (await game('/series')).series ?? []);
+  return kept('series', 2 * 60e3, async () => (await game('/series')).series ?? []);
 }
 
 // Ids of the cards in the player's search list ("Je la cherche").
 async function wantedIds() {
-  const { wants } = await cached('wants', 30e3, () => game('/wants'));
+  const { wants } = await kept('wants', 30e3, () => game('/wants'));
   return new Set((wants ?? []).map((w) => w?.card?.id ?? w?.cardId).filter(Boolean));
 }
 
@@ -744,7 +811,7 @@ export async function wantRoom(waiting, sent) {
 
 // Cards of one series, with the number of copies the player owns.
 function seriesCards(id) {
-  return cached(`series-cards:${id}`, 60e3, async () => (await game(`/cards?manga=${encodeURIComponent(id)}`)).cards ?? []);
+  return kept(`series-cards:${id}`, 60e3, async () => (await game(`/cards?manga=${encodeURIComponent(id)}`)).cards ?? []);
 }
 
 const FAV_PULL = 60e3; // the other devices' favourites are read once a minute at most
@@ -778,7 +845,7 @@ async function exchangeFavorites(local) {
 // The drawings of every kind of booster published by the author (the relay keeps them a minute in the browsers).
 export async function globalPacks() {
   try {
-    const res = await offline(`/packs`);
+    const res = await relayGet(`/packs`);
     if (!res.ok) throw new Error(`relay_${res.status}`);
     return (await res.json())?.packs ?? null;
   } catch {
@@ -1023,7 +1090,7 @@ export async function pollFeed() {
 // The public history of the relay ({ pulls, since, total }), or null when it doesn't answer.
 async function relayPulls(params) {
   try {
-    const res = await offline(`/pulls?${new URLSearchParams(params)}`);
+    const res = await relayGet(`/pulls?${new URLSearchParams(params)}`);
     return res.ok ? await res.json() : null;
   } catch {
     return null;
@@ -1084,7 +1151,7 @@ async function scanPullers(pulls) {
 // The players the relay knows to have a card ({ owners, scanned }), or null when it doesn't answer.
 async function relayHoldings(card) {
   try {
-    const res = await offline(`/holdings?card=${encodeURIComponent(card)}`);
+    const res = await relayGet(`/holdings?card=${encodeURIComponent(card)}`);
     return res.ok ? await res.json() : null;
   } catch {
     return null;
@@ -1212,7 +1279,7 @@ export async function knownPlayers(max = 120) {
   const { feedLog = [] } = await chrome.storage.local.get('feedLog');
   let remote = [];
   try {
-    const res = await offline(`/players?limit=${max}`);
+    const res = await relayGet(`/players?limit=${max}`);
     if (res.ok) remote = (await res.json()).players ?? [];
   } catch {}
   const seen = new Map();

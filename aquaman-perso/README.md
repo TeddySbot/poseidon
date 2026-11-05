@@ -1,4 +1,4 @@
-# Aquaman (perso) — v1.4.1
+# Aquaman (perso) — v1.4.2
 
 Guide d'installation complet : voir le [README du dépôt](../README.md).
 
@@ -14,12 +14,22 @@ Guide d'installation complet : voir le [README du dépôt](../README.md).
 
 ## Retiré d'Aquaman d'origine
 
-- **Relais de l'auteur** (`aquaman-relay…workers.dev`) : plus aucun envoi (identifiant, pseudo, boosters, favoris, recherches, achats, beaux tirages, collections des autres joueurs). Les appels sont neutralisés (`offline()` dans `src/lib/aquaman.js`), et le domaine n'est plus dans les permissions.
+- **Relais de l'auteur** (`aquaman-relay…workers.dev`) : plus aucun envoi (identifiant, pseudo, boosters, favoris, recherches, achats, beaux tirages, collections des autres joueurs). Les envois sont neutralisés (`offline()` dans `src/lib/aquaman.js`) ; depuis la 1.4.2, seule la lecture de la base publique est rebranchée (voir plus haut).
 - **Installateur de mises à jour** : plus de `installer-mises-a-jour.bat`, de `updater/` (PowerShell) ni de permission `nativeMessaging`.
 - **Télémétrie** et menus réservés à l'auteur.
 - **Relevé des beaux tirages chaque minute** en arrière-plan, et lecture automatique des collections des autres joueurs.
 - Permission `browsingData`.
 - Réglages de partage : forcés à « non » dans le code.
+
+## Nouveau en 1.4.2
+
+- **Lecture plus rapide** : ta collection, tes cartes recherchées et les séries sont gardées dans le navigateur. Elles
+  s'affichent tout de suite, puis sont relues en arrière-plan. Après un booster, un achat, une vente, un échange ou une
+  recherche modifiée (et au-delà de 15 min), Aquaman attend de nouveau la réponse du site.
+- **Base du relais en lecture seule** : « Qui a cette carte ? », l'historique des beaux tirages, les joueurs vus et les
+  taux des boosters relisent la base publique de l'auteur (`/packs`, `/pulls`, `/holdings?card=`, `/players`, en GET,
+  sans cookie, 6 s au plus). **Rien n'y est envoyé.** Le relais voit ton adresse IP et la carte cherchée.
+  Pour couper : réglage `relayRead: false`.
 
 ## Modifié
 
