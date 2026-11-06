@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Aquaman (perso)",
   "short_name": "Aquaman perso",
-  "version": "1.4.2",
-  "description": "Compagnon Poseidon Scans : Aquaman nettoyé (sans serveur externe) + Alertes Marché + Vente auto.",
+  "version": "1.7.0",
+  "description": "Compagnon Poseidon Scans : Aquaman nettoyé (sans serveur externe) + Alertes Marché + Vente auto + Compléter ma collection + Ma progression.",
   "author": "Teddy (Aquaman d'après A-Finch13, MIT)",
   "icons": {
     "16": "icons/icon16.png",
@@ -30,7 +30,8 @@
     "alarms",
     "notifications",
     "tabs",
-    "scripting"
+    "scripting",
+    "nativeMessaging"
   ],
   "host_permissions": [
     "https://poseidon-scans.net/*",

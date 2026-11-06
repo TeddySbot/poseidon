@@ -2,13 +2,17 @@
 // Réunit trois outils :
 //   - Aquaman (A-Finch13, MIT) nettoyé : plus de relais, plus de télémétrie, plus d'installateur PowerShell ;
 //   - Alertes Marché (src/modules/alertes.js) ;
-//   - Vente auto (src/modules/vente.js).
+//   - Vente auto (src/modules/vente.js) ;
+//   - Compléter ma collection (src/modules/completer.js) : propositions d'échange, envoyées seulement après confirmation ;
+//   - Ma progression (src/modules/progression.js) : avancement par rareté et par série, photo quotidienne.
 // Seules adresses contactées : poseidon-scans.net, et api.github.com toutes les 6 h (version publiée sur le dépôt de Teddy).
 import { ORIGIN, answer, getSettings, gameStatus } from './lib/aquaman.js';
 import { setBadge, COLORS } from './lib/badge.js';
 import { checkUpdate, RELEASES_URL } from './lib/update.js';
 import * as alertes from './modules/alertes.js';
 import * as vente from './modules/vente.js';
+import * as completer from './modules/completer.js';
+import * as progression from './modules/progression.js';
 
 const POLL_ALARM = 'aquaman-poll';
 const UPDATE_ALARM = 'aquaman-update-check';
@@ -97,6 +101,41 @@ async function announceUpdate(previousVersion) {
   notify('updated', { title: `Aquaman perso est passé en ${version}`, message: 'Clique pour voir les nouveautés de cette version.', href: '/jeu#aqm-nouveautes' });
 }
 
+// ---------- mise à jour en un clic ----------
+// L'assistant (updater/host.ps1, installé une fois par installer-mises-a-jour.bat) télécharge la release GitHub,
+// vérifie son empreinte SHA-256, sauvegarde l'ancienne version et remplace les fichiers. L'extension se recharge ensuite.
+const UPDATER = 'com.teddysbot.aquaman_perso';
+
+async function native(msg) {
+  try {
+    return await chrome.runtime.sendNativeMessage(UPDATER, msg);
+  } catch (e) {
+    return { error: 'no_updater', detail: e?.message || String(e) };
+  }
+}
+
+async function updaterPing() {
+  const r = await native({ action: 'ping' });
+  return r?.ok ? { installed: true, version: r.version, git: !!r.git, backups: [].concat(r.backups ?? []) } : { installed: false, error: r?.error };
+}
+
+async function installUpdate() {
+  const st = await checkUpdate(true);
+  if (!st?.update) return { error: st?.error ? 'download_failed' : 'up_to_date', detail: st?.error ?? null };
+  const r = await native({ action: 'update', version: st.update.version });
+  if (r?.ok) {
+    await chrome.storage.local.set({ updateState: { ...st, update: null } });
+    setTimeout(() => chrome.runtime.reload(), 1500);
+  }
+  return r;
+}
+
+async function rollbackUpdate() {
+  const r = await native({ action: 'rollback' });
+  if (r?.ok) setTimeout(() => chrome.runtime.reload(), 1500);
+  return r;
+}
+
 // ---------- démarrage ----------
 
 function startAll() {
@@ -104,6 +143,8 @@ function startAll() {
   pollBoosters();
   alertes.start();
   vente.start();
+  completer.start();
+  progression.start();
 }
 
 chrome.runtime.onInstalled.addListener(async ({ reason, previousVersion }) => {
@@ -116,6 +157,8 @@ chrome.runtime.onStartup.addListener(startAll);
 // Le service est relancé par Chrome sans événement (après une mise en veille) : les boucles reprennent ici.
 alertes.start();
 vente.start();
+completer.start();
+progression.start();
 
 // ---------- messages ----------
 
@@ -123,14 +166,20 @@ async function handle(msg) {
   const type = String(msg?.type ?? '');
   if (type.startsWith('alertes:')) return alertes.handleMessage(type.slice(8));
   if (type.startsWith('vente:')) return vente.handleMessage(type.slice(6));
+  if (type.startsWith('completer:')) return completer.handleMessage(type.slice(10), msg);
+  if (type.startsWith('progression:')) return progression.handleMessage(type.slice(12));
   switch (type) {
     case 'status':
       await onStatus(msg.pending ?? 0);
       return { ok: true };
     case 'check-update':
       return (await lookForUpdate(!!msg.force)) ?? { ok: true };
+    case 'updater-ping':
+      return updaterPing();
     case 'install-update':
-      return { error: 'disabled' };
+      return installUpdate();
+    case 'rollback-update':
+      return rollbackUpdate();
     case 'open':
       await openSite(msg.href);
       return { ok: true };

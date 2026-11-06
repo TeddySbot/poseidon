@@ -6,7 +6,7 @@
 Classement entre amis, boosters rentables, alertes du marché, vente auto des doublons… dans une seule extension.<br>
 Installation : 5 minutes.</p>
 
-> Aquaman perso, c'est l'extension Aquaman de A‑Finch13 (licence MIT) **nettoyée** : plus aucun serveur externe, plus de télémétrie, plus d'installateur sur le PC. On y a ajouté nos deux outils : **Alertes Marché** et **Vente auto**.
+> Aquaman perso, c'est l'extension Aquaman de A‑Finch13 (licence MIT) **nettoyée** : plus aucun serveur externe, plus de télémétrie ; la mise à jour en un clic est facultative et ne parle qu'à ce dépôt GitHub. On y a ajouté nos deux outils : **Alertes Marché** et **Vente auto**.
 > Elle ne parle qu'à `poseidon-scans.net`, et à `api.github.com` toutes les 6 h pour savoir si une nouvelle version existe.
 >
 > **Page d'installation : https://teddysbot.github.io/poseidon/**
@@ -50,7 +50,9 @@ Va sur [poseidon-scans.net/jeu](https://poseidon-scans.net/jeu) et connecte-toi.
 
 ### 5. Mises à jour
 
-Toutes les 6 h, l'extension regarde sur ce dépôt si une version plus récente existe. Si oui, tu reçois une notification et un bandeau s'affiche dans sa fenêtre. **Rien ne s'installe tout seul** : voir « Comment se font les mises à jour ? » plus bas.
+**Une seule fois** : dans le dossier `aquaman-perso`, double-clique sur **`installer-mises-a-jour.bat`**, puis **↻** sous Aquaman dans `chrome://extensions`.
+
+Ensuite, toutes les 6 h, l'extension regarde sur ce dépôt si une version plus récente existe. Si oui, tu reçois une notification et un bandeau s'affiche dans sa fenêtre : clique sur **Mettre à jour**, c'est tout (téléchargement, vérification, remplacement des fichiers et redémarrage de l'extension). **Rien ne s'installe sans ce clic.**
 
 ### Comment savoir que ça marche ?
 
@@ -108,7 +110,7 @@ La **garantie anti-malchance** et les **séries favorites** peuvent être les m�
 
 **Dans la fenêtre de l'extension**
 - 🔔 **Alertes Marché** : tu listes des cartes (prix max et rareté en option). Dès qu'une est en vente, une notification Windows apparaît et reste affichée jusqu'à la fin de la vente. Un clic ouvre la carte sur le marché. Vérification réglable de 2 s à 1 min, avec ralentissement automatique si le site freine. Ventes à prix fixe uniquement, **aucun achat automatique**.
-- 🤖 **Vente auto** : met en vente tes Communes, Rares et Épiques **en double et recherchées**. Une vente par carte, le serial le plus haut, un prix plancher par rareté, 50 places au maximum, rotation toutes les heures. **Démarre en mode Simulation** : rien n'est vendu tant que tu ne passes pas en **Réel**.
+- 🤖 **Vente auto** : met en vente tes Communes, Rares et Épiques **en double et recherchées**. Une vente par carte, le serial le plus haut, un prix qui part de la médiane des dernières ventes (+15 %) et baisse de 8 % à chaque rotation sans vente, jamais plus cher que la vente la moins chère − 1, un plancher par rareté et par carte (70 % du prix habituel), 50 places au maximum. À chaque rotation, seules les ventes doublées ou à baisser sont remises en vente ; tes ventes manuelles ne sont pas touchées. **Démarre en mode Simulation** : rien n'est vendu tant que tu ne passes pas en **Réel**.
 - 📊 **Statistiques de la vente auto** : Perles nettes, graphique sur 14 jours, historique, export CSV.
 
 ---
@@ -116,7 +118,13 @@ La **garantie anti-malchance** et les **séries favorites** peuvent être les m�
 ## ❓ Questions
 
 **Comment se font les mises à jour ?**
-Avec Git : `git pull` dans le dossier, puis **↻** sous Aquaman dans `chrome://extensions`. Avec le zip : télécharge le nouveau zip, remplace le contenu du dossier, puis **↻**. Tes réglages et tes listes sont gardés.
+Bouton **Mettre à jour** dans la fenêtre d'Aquaman, après avoir lancé une fois `installer-mises-a-jour.bat` (Windows). L'assistant :
+- télécharge seulement depuis les releases de `github.com/TeddySbot/poseidon` ;
+- vérifie l'empreinte SHA-256 publiée avec la release, ainsi que le nom et la version du paquet ;
+- garde une sauvegarde des 3 dernières versions (`%LOCALAPPDATA%\AquamanPersoUpdater\sauvegardes`) ; « Revenir à la version précédente » est dans la fenêtre d'Aquaman ;
+- dans un dossier Git, fait `git pull --ff-only` (rien n'est écrasé si tu as des modifications).
+
+Pour le retirer : `installer-mises-a-jour.bat -Uninstall`. Sans l'assistant (ou sur Mac/Linux) : avec Git, `git pull` puis **↻** ; avec le zip, remplace le contenu du dossier puis **↻**. Tes réglages et tes listes sont gardés.
 
 **Quelles données sont envoyées ?**
 Aucune, à personne. L'extension lit le jeu avec ta session sur `poseidon-scans.net`, comme le site lui-même. Tes listes, statistiques et réglages restent sur ton PC. Le seul autre contact est GitHub : lecture de la version publiée et, si tu l'actives, ta synchro dans **ton propre** Gist privé.

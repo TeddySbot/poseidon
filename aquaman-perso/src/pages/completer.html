@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Compléter ma collection · Aquaman</title>
+<link rel="icon" href="../../icons/icon48.png">
+<style>
+  :root { color-scheme:dark; --bg:#0b0b0d; --panel:#18181b; --panel2:#202024; --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14); --txt:#f4f4f5; --mut:#a1a1aa; --acc:#60a5fa; --blue:#2563eb; --ok:#22c55e; --bad:#f87171; --sim:#fbbf24; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  a { color:var(--acc); text-decoration:none; } a:hover { text-decoration:underline; }
+  .wrap { max-width:1150px; margin:0 auto; padding:28px 16px 48px; }
+  header { display:flex; flex-wrap:wrap; align-items:center; gap:10px 12px; margin-bottom:20px; }
+  header img { width:40px; height:40px; border-radius:12px; }
+  header .t { flex:1; min-width:220px; }
+  .kick { font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--acc); }
+  header h1 { margin:0; font-size:24px; font-weight:900; font-style:italic; text-transform:uppercase; }
+  .statusline { width:100%; color:var(--mut); font-size:13px; }
+  .statusline.run { color:var(--sim); } .statusline.err { color:var(--bad); }
+  .bar { height:6px; border-radius:99px; background:var(--panel2); overflow:hidden; margin-top:6px; }
+  .bar i { display:block; height:100%; background:var(--blue); }
+  button { height:36px; padding:0 16px; border:1px solid transparent; border-radius:999px; background:var(--blue); color:#fff; font:inherit; font-weight:750; cursor:pointer; }
+  button.ghost { background:rgba(255,255,255,.05); border-color:var(--line2); color:var(--txt); }
+  button.small { height:30px; padding:0 12px; font-size:12.5px; }
+  button.ok { background:#15803d; } button.armed { background:#ea580c; }
+  button:disabled { opacity:.5; cursor:default; }
+  button:hover:not(:disabled) { filter:brightness(1.12); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:16px; }
+  .card h2 { margin:0 0 12px; font-size:11px; text-transform:uppercase; letter-spacing:.14em; color:var(--acc); font-weight:800; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .card h2 .sp { flex:1; }
+  .tiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:16px; }
+  .tile { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 16px; }
+  .tile .lab { color:var(--mut); font-size:12px; font-weight:600; }
+  .tile .val { font-size:28px; font-weight:900; font-variant-numeric:tabular-nums; margin-top:2px; }
+  .tile .sub { color:var(--mut); font-size:12px; margin-top:2px; }
+  .tile.hero { background:linear-gradient(135deg, rgba(37,99,235,.22), rgba(24,24,27,1) 60%); border-color:rgba(96,165,250,.3); }
+  .tile.hero .val { color:#bfdbfe; }
+  .seg { display:inline-flex; padding:3px; border:1px solid var(--line2); border-radius:999px; background:var(--panel2); }
+  .seg button { height:28px; padding:0 12px; background:transparent; color:var(--mut); border:0; font-weight:700; font-size:12.5px; }
+  .seg button.on { background:var(--blue); color:#fff; }
+  .tablewrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th, td { padding:7px 8px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
+  th { color:var(--mut); font-weight:700; font-size:12px; }
+  th:first-child, td:first-child { text-align:left; }
+  td.l { text-align:left; white-space:normal; }
+  .R-N { color:#cbd5e1; } .R-R { color:#60a5fa; } .R-SR { color:#c084fc; } .R-SSR { color:#fbbf24; } .R-UR { color:#f87171; } .R-SEC { color:#f472b6; }
+  .muted { color:var(--mut); } .note { color:var(--mut); font-size:12px; margin-top:8px; }
+  .empty { color:var(--mut); padding:12px 0; }
+  .scroll { max-height:460px; overflow:auto; }
+  .prop { border:1px solid var(--line); border-radius:14px; padding:12px; margin-bottom:10px; background:var(--panel2); }
+  .prop .top { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:8px; }
+  .prop .who { font-weight:800; font-size:15px; }
+  .pill { font-size:11px; font-weight:800; padding:2px 8px; border-radius:99px; border:1px solid var(--line2); color:var(--mut); }
+  .pill.ok { color:#86efac; border-color:rgba(34,197,94,.4); } .pill.warn { color:#fde68a; border-color:rgba(251,191,36,.4); } .pill.bad { color:#fecaca; border-color:rgba(248,113,113,.4); } .pill.blue { color:#bfdbfe; border-color:rgba(96,165,250,.4); }
+  .sides { display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:start; }
+  .side h3 { margin:0 0 6px; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mut); }
+  .side h3 b { color:var(--txt); }
+  .arrow { align-self:center; font-size:20px; color:var(--mut); }
+  .cards { display:flex; flex-wrap:wrap; gap:6px; }
+  .cc { width:92px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:4px; font-size:11px; line-height:1.25; }
+  .cc img { width:100%; aspect-ratio:5/7; object-fit:cover; border-radius:7px; background:#111; display:block; }
+  .cc .n { font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:3px; }
+  .cc .m { color:var(--mut); }
+  .actions { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; align-items:center; }
+  .err { color:var(--bad); font-size:12.5px; }
+  .serie { display:grid; grid-template-columns:1fr 70px; gap:8px; align-items:center; padding:5px 0; border-bottom:1px solid var(--line); }
+  .serie .bar { margin-top:4px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .field { height:34px; border-radius:10px; border:1px solid var(--line2); background:var(--panel2); color:var(--txt); padding:0 10px; font:inherit; }
+  textarea.field { height:auto; padding:8px 10px; width:100%; resize:vertical; }
+  label.lab { display:block; color:var(--mut); font-size:12px; font-weight:600; margin:10px 0 4px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .log div { padding:3px 0; border-bottom:1px solid var(--line); font-size:12.5px; }
+  .log .err2 { color:var(--bad); }
+  @media (max-width:800px) { .sides { grid-template-columns:1fr; } .arrow { display:none; } .grid2 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="../../icons/icon48.png" alt="">
+    <div class="t"><div class="kick">Aquaman · Échanges</div><h1>Compléter ma collection</h1></div>
+    <button id="scan">Analyser</button>
+    <button id="refresh" class="ghost">Actualiser mes échanges</button>
+    <div class="statusline" id="status"></div>
+  </header>
+
+  <div class="tiles">
+    <div class="tile hero"><div class="lab">Collection</div><div class="val" id="kColl">–</div><div class="sub" id="kCollSub"></div></div>
+    <div class="tile"><div class="lab">Cartes manquantes</div><div class="val" id="kMiss">–</div><div class="sub" id="kMissSub"></div></div>
+    <div class="tile"><div class="lab">Doubles échangeables</div><div class="val" id="kDup">–</div><div class="sub" id="kDupSub"></div></div>
+    <div class="tile"><div class="lab">Propositions à valider</div><div class="val" id="kTodo">–</div><div class="sub" id="kTodoSub"></div></div>
+    <div class="tile"><div class="lab">Échanges en cours</div><div class="val" id="kOpen">–</div><div class="sub" id="kOpenSub"></div></div>
+    <div class="tile"><div class="lab">Obtenues par échange</div><div class="val" id="kGot">–</div><div class="sub" id="kGotSub"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Propositions <span class="sp"></span>
+      <span class="seg" id="propTab">
+        <button data-v="todo" class="on">À valider</button>
+        <button data-v="sent">Envoyées</button>
+        <button data-v="ignored">Ignorées</button>
+      </span>
+    </h2>
+    <div id="props"></div>
+    <div class="note">Rien ne part sans ton clic sur « Envoyer » puis « Confirmer ». Tu gardes toujours ton exemplaire au plus petit #serial ; les doubles proposés sont ceux aux plus gros serials. Valeurs = valeur officielle du jeu (Perles).</div>
+  </div>
+
+  <div class="card">
+    <h2>Suivi de mes échanges envoyés</h2>
+    <div class="tablewrap scroll"><table id="sent"></table></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>Par rareté</h2>
+      <div class="tablewrap"><table id="rarity"></table></div>
+      <div class="note" id="rarNote"></div>
+    </div>
+    <div class="card">
+      <h2>Séries les plus incomplètes</h2>
+      <div class="scroll" id="series"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Cartes manquantes <span class="sp"></span>
+      <input id="q" class="field" placeholder="Chercher une carte ou une série" style="width:240px">
+      <select id="rf" class="field"><option value="">Toutes raretés</option></select>
+    </h2>
+    <div class="tablewrap scroll"><table id="missing"></table></div>
+    <div class="note">Détenteurs = joueurs connus du serveur Aquaman (cherchés pour une partie des cartes à chaque analyse).</div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>Réglages</h2>
+      <label class="lab" for="msg">Message joint (200 caractères, {cartes} = noms des cartes demandées)</label>
+      <textarea id="msg" class="field" rows="3" maxlength="200"></textarea>
+      <div class="row">
+        <div><label class="lab" for="over">Je donne au plus</label>
+          <select id="over" class="field"><option value="0">la même valeur</option><option value="0.1">+10 %</option><option value="0.2">+20 %</option><option value="0.3">+30 %</option><option value="0.5">+50 %</option></select></div>
+        <div><label class="lab" for="maxTake">Cartes demandées par échange</label>
+          <select id="maxTake" class="field"><option>1</option><option>2</option><option>3</option><option>4</option><option>6</option><option>10</option></select></div>
+      </div>
+      <label class="lab"><input type="checkbox" id="notify"> Me prévenir quand un échange est accepté</label>
+      <div class="row" style="margin-top:10px"><button id="save" class="small">Enregistrer</button><span id="saved" class="muted"></span></div>
+    </div>
+    <div class="card">
+      <h2>Journal <span class="sp"></span><button id="clear" class="ghost small">Vider</button></h2>
+      <div class="log scroll" id="log"></div>
+    </div>
+  </div>
+</div>
+<script type="module" src="completer.js"></script>
+</body>
+</html>

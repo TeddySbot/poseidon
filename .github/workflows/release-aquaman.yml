@@ -27,6 +27,8 @@ jobs:
           V="${{ steps.ver.outputs.version }}"
           (cd aquaman-perso && zip -qr "../aquaman-perso-$V.zip" . -x '.*')
           cp "aquaman-perso-$V.zip" aquaman-perso.zip
+          # empreinte vérifiée par l'assistant de mise à jour (updater/host.ps1) avant toute installation
+          sha256sum "aquaman-perso-$V.zip" | cut -d' ' -f1 > "aquaman-perso-$V.zip.sha256"
           python3 tools/build_userscript.py
 
       - name: Publier (ou compléter) la release
@@ -34,16 +36,23 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           V="${{ steps.ver.outputs.version }}"
-          FILES="aquaman-perso-$V.zip aquaman-perso.zip dist/aquaman-perso.user.js tools/aquaman_sync.py"
+          FILES="aquaman-perso-$V.zip aquaman-perso-$V.zip.sha256 aquaman-perso.zip dist/aquaman-perso.user.js tools/aquaman_sync.py"
           if gh release view "aquaman-v$V" >/dev/null 2>&1; then
+            # L'empreinte d'une release déjà publiée est calculée sur SON zip (celui reconstruit ici peut différer).
+            if ! gh release view "aquaman-v$V" --json assets -q '.assets[].name' | grep -qx "aquaman-perso-$V.zip.sha256"; then
+              mkdir -p published && gh release download "aquaman-v$V" -p "aquaman-perso-$V.zip" -D published \
+                && sha256sum "published/aquaman-perso-$V.zip" | cut -d' ' -f1 > "aquaman-perso-$V.zip.sha256" \
+                || rm -f "aquaman-perso-$V.zip.sha256"
+            fi
             # Déjà publiée : on ajoute seulement les fichiers qui manquent (une version publiée n'est jamais réécrite).
             HAVE=$(gh release view "aquaman-v$V" --json assets -q '.assets[].name')
             for f in $FILES; do
+              [ -f "$f" ] || continue
               grep -qx "$(basename "$f")" <<< "$HAVE" || gh release upload "aquaman-v$V" "$f"
             done
           else
             gh release create "aquaman-v$V" $FILES \
               --target "$GITHUB_SHA" \
               --title "Aquaman perso $V" \
-              --notes "PC : dézippe aquaman-perso.zip dans le dossier de l'extension (en remplaçant les fichiers), puis ↻ sous Aquaman dans chrome://extensions (avec Git : git pull, puis ↻). Téléphone : aquaman-perso.user.js se met à jour tout seul. Serveur : aquaman_sync.py."
+              --notes "PC : bouton « Mettre à jour » dans la fenêtre d'Aquaman (après installer-mises-a-jour.bat, une seule fois). Sinon, dézippe aquaman-perso.zip dans le dossier de l'extension (en remplaçant les fichiers), puis ↻ sous Aquaman dans chrome://extensions (avec Git : git pull, puis ↻). Téléphone : aquaman-perso.user.js se met à jour tout seul. Serveur : aquaman_sync.py."
           fi

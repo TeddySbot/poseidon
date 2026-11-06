@@ -25,14 +25,25 @@
     <section class="pane" id="pane-home">
       <div id="update" class="banner" hidden>
         <p><b>Aquaman perso <span id="update-version"></span> est disponible.</b></p>
-        <p class="muted" style="margin-top: 4px">Avec Git : <code>git pull</code>, puis ↻ dans <code>chrome://extensions</code>. Sinon télécharge le nouveau zip, remplace le contenu du dossier, puis ↻.</p>
-        <div class="row" style="margin-top: 8px"><button type="button" class="btn main small" data-open="releases">Page des versions</button></div>
+        <div id="upd-ready" hidden>
+          <div class="row" style="margin-top: 8px"><button type="button" class="btn main small" id="installUpdate">Mettre à jour</button></div>
+        </div>
+        <div id="upd-setup" hidden>
+          <p class="muted" style="margin-top: 4px">Pour mettre à jour en un clic, fais <b>une seule fois</b> : double-clic sur <code>installer-mises-a-jour.bat</code> dans le dossier de l’extension, puis ↻ dans <code>chrome://extensions</code>.</p>
+          <p class="muted" style="margin-top: 4px">Sinon : avec Git, <code>git pull</code> ; avec le zip, remplace le contenu du dossier ; puis ↻.</p>
+          <div class="row" style="margin-top: 8px"><button type="button" class="btn main small" data-open="releases">Page des versions</button></div>
+        </div>
+        <p id="upd-msg" class="muted" style="margin-top: 6px"></p>
       </div>
 
       <div class="status"><p id="status" class="muted">…</p></div>
 
       <nav class="actions">
         <button type="button" class="btn main" data-open="/jeu">Ouvrir le jeu</button>
+        <div class="row">
+          <button type="button" class="btn grow" id="openProgression">Ma progression</button>
+          <button type="button" class="btn grow" id="openCompleter">Compléter ma collection</button>
+        </div>
         <div class="row">
           <button type="button" class="btn grow" data-open="/jeu#aqm-visite">Visite guidée</button>
           <button type="button" class="btn grow" data-open="/jeu#aqm-nouveautes">Nouveautés</button>
@@ -45,8 +56,9 @@
         <label class="switch"><input type="checkbox" data-setting="notifyUpdated" /> <span>Nouvelle version installée</span></label>
 
         <h2 class="gap">Mises à jour <span class="sp"></span><button type="button" id="checkNow" class="link">Vérifier</button></h2>
-        <p class="muted">Toutes les 6 h, l’extension regarde sur GitHub si une version plus récente existe et te prévient. Rien ne s’installe tout seul.</p>
+        <p class="muted">Toutes les 6 h, l’extension regarde sur GitHub si une version plus récente existe et te prévient. Rien ne s’installe sans ton clic sur « Mettre à jour ».</p>
         <p id="updateInfo" class="muted" style="margin-top: 6px"></p>
+        <p id="updaterInfo" class="muted" style="margin-top: 6px"></p>
 
         <h2 class="gap">Synchro entre appareils <span class="sp"></span><span id="syncPill" class="pill off">Non reliée</span></h2>
         <p class="muted">Relie ton PC, ton téléphone et ton serveur : garantie anti-malchance et séries favorites partagées par un <b>Gist privé</b> de ton compte GitHub. Jeton avec seulement l’accès « Gists ».</p>
@@ -169,6 +181,12 @@
             <label><input type="checkbox" id="v-rSR" /> <span class="R-SR">Épique</span></label><span class="hint">en dernier</span>
             <div class="row"><input type="number" id="v-fSR" class="field num" min="1" /> P</div>
           </div>
+          <h2 class="gap">Prix</h2>
+          <div class="row between"><span>Prix de départ : réf. +</span><span class="row"><input type="number" id="v-startPct" class="field num" min="0" max="100" /> %</span></div>
+          <div class="row between"><span>Baisse par rotation sans vente</span><span class="row"><input type="number" id="v-stepPct" class="field num" min="0" max="50" /> %</span></div>
+          <div class="row between"><span>Plancher de la carte : réf. ×</span><span class="row"><input type="number" id="v-floorPct" class="field num" min="0" max="100" /> %</span></div>
+          <div class="row between"><span>Rotation toutes les</span><span class="row"><input type="number" id="v-rotateMin" class="field num" min="15" max="240" /> min</span></div>
+          <p class="hint" style="margin-top: 6px">Réf. = médiane des dernières ventes de la carte (14 j). Jamais plus cher que la vente la moins chère − 1, jamais sous le plancher de la carte ni celui de la rareté. 0 % de plancher = plancher de la rareté seul.</p>
           <h2 class="gap">Emplacements</h2>
           <div class="row between"><span>Ventes en même temps (max)</span><input type="number" id="v-maxSlots" class="field num" min="1" max="50" /></div>
           <h2 class="gap">Vitesse</h2>
@@ -186,7 +204,7 @@
       <div id="v-actions" hidden>
         <div class="acts">
           <button type="button" class="act" id="v-stats"><span class="ic">📊</span><div><b>Statistiques</b><span>Perles rapportées, collection, historique</span></div></button>
-          <button type="button" class="act" id="v-rotate"><span class="ic">🔄</span><div><b>Cycle complet maintenant</b><span>Retire tout puis remet en vente</span></div></button>
+          <button type="button" class="act" id="v-rotate"><span class="ic">🔄</span><div><b>Rotation maintenant</b><span>Met à jour les prix de ses ventes, puis remplit</span></div></button>
           <button type="button" class="act" id="v-rescan"><span class="ic">🗂️</span><div><b>Refaire l’inventaire</b><span>Relit toute la collection</span></div></button>
           <button type="button" class="act danger" id="v-withdraw"><span class="ic">⛔</span><div><b id="v-withdrawLab">Tout retirer et arrêter</b><span>Retire toutes les ventes à prix fixe (2 clics)</span></div></button>
         </div>

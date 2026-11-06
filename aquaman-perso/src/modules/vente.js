@@ -4,11 +4,13 @@
 //  1. Inventaire (tous les jours, lentement) : trouve tes Communes / Rares / Épiques
 //     en 2 exemplaires ou plus, avec leurs serials et le nombre de joueurs qui les recherchent.
 //  2. Toutes les 2 min : regarde tes ventes. Si une carte est vendue, met le double suivant.
-//  3. Toutes les heures : retire TOUTES tes ventes à prix fixe et remet en vente.
+//  3. À chaque rotation (toutes les heures par défaut) : relit le prix de chacune de SES ventes et ne
+//     remet en vente que celles qui doivent baisser (doublée par un autre joueur, ou baisse progressive).
+//     Tes ventes manuelles ne sont jamais touchées.
 //  Limites : 50 emplacements, 25 actions (ventes + retraits) par tranche de 35 s.
 //  Mode simulation : ne vend et ne retire rien, affiche seulement ce qu'il ferait.
 
-import { RARITY_NAMES, SELL_RARITIES, sellableCopy, pickCandidates, computePrice } from "./vente-logic.js";
+import { RARITY_NAMES, SELL_RARITIES, DEFAULT_PRICING, sellableCopy, pickCandidates, computePrice } from "./vente-logic.js";
 import { nsStore } from "../lib/store.js";
 import { setBadge, COLORS } from "../lib/badge.js";
 export const store = nsStore("vente:");
@@ -23,6 +25,7 @@ const DEFAULT_SETTINGS = {
   maxSlots: 50,
   floors: { N: 6, R: 13, SR: 51 },   // Commune > 5, Rare > 12, Épique > 50
   rarities: { N: true, R: true, SR: true },  // raretés autorisées à la vente
+  pricing: { ...DEFAULT_PRICING },           // départ +15 %, −8 % par rotation sans vente, plancher carte 70 % de la réf.
   rotateMin: 60,
   checkMin: 2,
   scanHours: 24,
@@ -41,7 +44,8 @@ async function load() {
   const d = await store.get({ settings: {}, inv: null, run: null, log: [], status: {}, stats: null, sales: [] });
   S = {
     settings: { ...DEFAULT_SETTINGS, ...d.settings, floors: { ...DEFAULT_SETTINGS.floors, ...(d.settings.floors || {}) },
-      rarities: { ...DEFAULT_SETTINGS.rarities, ...(d.settings.rarities || {}) } },
+      rarities: { ...DEFAULT_SETTINGS.rarities, ...(d.settings.rarities || {}) },
+      pricing: { ...DEFAULT_PRICING, ...(d.settings.pricing || {}) } },
     inv: d.inv || { cards: {}, scan: null, scannedAt: 0 },
     run: d.run || {},
     log: d.log || [],
@@ -51,6 +55,7 @@ async function load() {
   };
   S.run = { lastRotate: 0, lastCheck: 0, lastRefresh: 0, tracked: {}, skip: {}, plan: null, writes: [], botCopies: {}, ...S.run };
   S.run.botCopies = S.run.botCopies || {};
+  S.run.priceAge = S.run.priceAge || {};   // {cardId: date de la 1re mise en vente sans vente depuis} → baisse progressive
   if (S.run.ver !== 2) { S.run.skip = {}; S.run.ver = 2; }   // efface les blocages des essais refusés de la v1.0
   return S;
 }
@@ -121,6 +126,13 @@ async function countAll() {
   log("info", "Comptage de la collection terminé.");
 }
 const rn = r => RARITY_NAMES[r] || r;
+
+// Nombre de rotations passées sans vente pour une carte (0 = première mise en vente)
+function ageOf(cardId, now = Date.now()) {
+  const t = S.run.priceAge[cardId];
+  return t ? Math.max(0, Math.floor((now - t) / (S.settings.rotateMin * 60_000))) : 0;
+}
+const priceOpts = (cardId, extra = {}) => ({ pricing: S.settings.pricing, age: ageOf(cardId), ...extra });
 
 // ---------- attente qui garde le service worker éveillé ----------
 // ---------- arrêt immédiat ----------
@@ -361,6 +373,7 @@ async function refreshOpen() {
       if (o?.status === "filled") {
         log("sold", `Vendue : ${t.name} (${rn(t.rarity)} #${t.serial}) à ${o.price} Perles${byBot ? "" : " (vente manuelle)"}`);
         if (byBot) recordSale(t, o.price);
+        delete S.run.priceAge[t.cardId];   // vendue : la prochaine repart du prix de départ
         if (card) card.copies = card.copies.filter(c => c.id !== t.copyId);
       } else if (card) {
         const c = card.copies.find(c => c.id === t.copyId); if (c) c.locked = false;
@@ -391,7 +404,7 @@ async function fill(free, listedCardIds, plan) {
     card.wants = m.wants || 0; card.value = m.value ?? card.value; card.checkedAt = Date.now();
     if (!card.wants) continue;                                   // plus recherchée
     if ((m.mine || []).length) { listedCardIds.add(card.id); continue; }  // déjà en vente
-    const p = computePrice(m, card.rarity, S.settings.floors);
+    const p = computePrice(m, card.rarity, S.settings.floors, priceOpts(card.id));
     if (!p.price) { S.run.skip[card.id] = Date.now() + 3600_000; log("skip", `${card.name} ignorée : ${p.reason}`); continue; }
 
     // Exemplaires relus depuis plus de 15 min (tu as pu vendre, recycler, échanger…) : on relit avant de vendre
@@ -412,8 +425,10 @@ async function fill(free, listedCardIds, plan) {
           log("sold", `Vendue tout de suite : ${card.name} #${copy.serial} à ${res.filled.price ?? p.price} Perles`);
           recordSale({ cardId: card.id, name: card.name, rarity: card.rarity, serial: copy.serial }, res.filled.price ?? p.price);
           if (c) c.copies = c.copies.filter(x => x.id !== copy.id);
+          delete S.run.priceAge[card.id];
         } else {
           copy.locked = true;
+          if (!S.run.priceAge[card.id]) S.run.priceAge[card.id] = Date.now();
           S.run.botCopies[copy.id] = { at: Date.now(), price: p.price, cardId: card.id };
           log("list", `En vente : ${card.name} (${rn(card.rarity)} #${copy.serial}) à ${p.price} Perles — ${p.source}`);
         }
@@ -444,25 +459,86 @@ async function fill(free, listedCardIds, plan) {
 }
 
 // ---------- retrait ----------
+const FATAL = ["slow_down", "auth", "no_tab", "origin", "stopped"];
+
+// Retire une vente à prix fixe. true si elle est bien retirée.
+async function withdrawOne(l) {
+  await writeSlot();
+  try {
+    await api(`/market/orders/${l.id}`, { method: "DELETE" });
+    S.run.errStreak = 0; delete S.run.botCopies[l.copyId];
+    const c = S.inv.cards[l.card.id]?.copies.find(c => c.id === l.copyId); if (c) c.locked = false;
+    delete S.run.tracked[l.id];
+    return true;
+  } catch (e) {
+    if (FATAL.includes(e.code)) throw e;
+    log("error", `Retrait impossible pour ${l.card.name} : ${e.message}`);
+    if (![400, 404, 409, 422].includes(e.status)) await countError();
+    return false;
+  }
+}
+
 async function withdrawAll(mine, plan) {
   let n = 0;
   for (const l of mine) {
     if (sim()) { plan.removed.push({ name: l.card.name, rarity: l.card.rarity, serial: l.serial, price: l.price }); continue; }
-    await writeSlot();
     S.status.phase = `Retrait ${n + 1}/${mine.length}…`;
-    try {
-      await api(`/market/orders/${l.id}`, { method: "DELETE" });
-      n++; S.run.errStreak = 0; delete S.run.botCopies[l.copyId];
-      const c = S.inv.cards[l.card.id]?.copies.find(c => c.id === l.copyId); if (c) c.locked = false;
-      delete S.run.tracked[l.id];
-    } catch (e) {
-      if (["slow_down", "auth", "no_tab", "origin", "stopped"].includes(e.code)) throw e;
-      log("error", `Retrait impossible pour ${l.card.name} : ${e.message}`);
-      if (![400, 404, 409, 422].includes(e.status)) await countError();
-    }
+    if (await withdrawOne(l)) n++;
   }
   if (!sim() && n) log("info", `${n} ventes retirées.`);
   return n;
+}
+
+// ---------- rotation fine ----------
+// Relit le prix d'une vente du script. Elle n'est remise en vente que si son prix doit baisser :
+// un autre joueur vend moins cher (ou au même prix), ou la baisse progressive est arrivée.
+// Renvoie "kept", "repriced" ou "dropped" (place libérée).
+async function reprice(l, plan) {
+  const id = l.card.id, name = l.card.name;
+  S.status.phase = `Prix de ${name}…`;
+  const m = await api(`/market/cards/${id}`);
+  const card = S.inv.cards[id];
+  if (card) { card.wants = m.wants || 0; card.value = m.value ?? card.value; card.checkedAt = Date.now(); }
+  if (!S.run.priceAge[id]) S.run.priceAge[id] = S.run.botCopies[l.copyId]?.at || Date.now();
+  const info = { cardId: id, name, rarity: l.card.rarity, serial: l.serial };
+
+  if (!(m.wants > 0)) {   // plus recherchée : on libère la place pour un double recherché
+    if (sim()) { plan.removed.push({ ...info, price: l.price }); return "dropped"; }
+    if (!(await withdrawOne(l))) return "kept";
+    delete S.run.priceAge[id];
+    log("info", `Retirée (plus recherchée) : ${name} (${rn(l.card.rarity)} #${l.serial})`);
+    return "dropped";
+  }
+
+  const myOrders = (m.mine || []).filter(o => (o.side || "sell") === "sell");
+  const p = computePrice(m, l.card.rarity, S.settings.floors, priceOpts(id, { mine: myOrders }));
+  if (!p.price || p.price >= l.price) return "kept";            // déjà le moins cher au bon prix : on ne touche à rien
+
+  const line = { ...info, price: p.price, from: l.price, source: p.source, wants: m.wants };
+  if (sim()) { plan.list.push(line); return "repriced"; }
+  if (!(await withdrawOne(l))) return "kept";
+  await writeSlot();
+  try {
+    const res = await api("/market/orders", { method: "POST", body: { cardId: id, side: "sell", price: p.price, copyId: l.copyId } });
+    S.run.errStreak = 0; setPerles(res?.perles);
+    if (res?.filled) {
+      const price = res.filled.price ?? p.price;
+      log("sold", `Vendue tout de suite : ${name} #${l.serial} à ${price} Perles`);
+      recordSale(info, price);
+      if (card) card.copies = card.copies.filter(x => x.id !== l.copyId);
+      delete S.run.priceAge[id];
+    } else {
+      const c = card?.copies.find(x => x.id === l.copyId); if (c) c.locked = true;
+      S.run.botCopies[l.copyId] = { at: Date.now(), price: p.price, cardId: id };
+      log("list", `Prix baissé : ${name} (${rn(l.card.rarity)} #${l.serial}) ${l.price} → ${p.price} Perles — ${p.source}`);
+    }
+    return "repriced";
+  } catch (e) {
+    if (FATAL.includes(e.code)) throw e;
+    log("error", `Remise en vente refusée pour ${name} : ${e.message}`);
+    if (![400, 404, 409, 422].includes(e.status)) await countError();
+    return "dropped";   // la place est libre : le remplissage la reprendra
+  }
 }
 
 // ---------- cycles ----------
@@ -471,14 +547,23 @@ async function rotate() {
   try { setPerles((await api("/me")).perles); } catch (e) { if (e.code === "stopped") throw e; }
   const plan = { at: Date.now(), kind: "rotation", removed: [], list: [] };
   const { mine, auctions, listedCardIds } = await refreshOpen();
-  await withdrawAll(mine, plan);
-  for (const l of mine) listedCardIds.delete(l.card.id);
-  const placed = await fill(S.settings.maxSlots - auctions.length, listedCardIds, plan);
+  const n = { kept: 0, repriced: 0, dropped: 0, manual: 0 };
+  for (const l of mine) {
+    if (!S.run.botCopies[l.copyId]) { n.manual++; continue; }   // vente manuelle : on n'y touche pas
+    const r = await reprice(l, plan);
+    n[r]++;
+    if (r === "dropped") listedCardIds.delete(l.card.id);
+    await save();
+  }
+  const free = S.settings.maxSlots - auctions.length - (mine.length - n.dropped);
+  const placed = await fill(free, listedCardIds, plan);
+  // la baisse progressive ne concerne que les cartes encore en vente
+  for (const id of Object.keys(S.run.priceAge)) if (!listedCardIds.has(id)) delete S.run.priceAge[id];
   S.run.lastRotate = Date.now(); S.run.lastCheck = Date.now();
-  if (sim()) { S.run.plan = plan; log("sim", `[Simulation] Retirerait ${plan.removed.length} ventes et en mettrait ${plan.list.length}.`); }
-  else log("info", `Rotation terminée : ${placed} cartes mises en vente.`);
-  if (!placed) S.status.idle = "Aucun double recherché à vendre pour l'instant : j'attends.";
-  else S.status.idle = null;
+  const sum = `${n.repriced} prix baissés, ${n.kept} inchangées, ${n.dropped} retirées, ${placed} nouvelles` + (n.manual ? ` (${n.manual} ventes manuelles ignorées)` : "");
+  if (sim()) { S.run.plan = plan; log("sim", `[Simulation] Rotation : ${sum}.`); }
+  else log("info", `Rotation terminée : ${sum}.`);
+  S.status.idle = free > 0 && !placed && !n.kept && !n.repriced ? "Aucun double recherché à vendre pour l'instant : j'attends." : null;
 }
 
 async function check() {
@@ -592,7 +677,8 @@ store.onChanged(async (ch) => {
   if (!ch.settings || !S) return;
   const nv = ch.settings.newValue || {};
   const before = S.settings, after = { ...DEFAULT_SETTINGS, ...nv,
-    floors: { ...DEFAULT_SETTINGS.floors, ...(nv.floors || {}) }, rarities: { ...DEFAULT_SETTINGS.rarities, ...(nv.rarities || {}) } };
+    floors: { ...DEFAULT_SETTINGS.floors, ...(nv.floors || {}) }, rarities: { ...DEFAULT_SETTINGS.rarities, ...(nv.rarities || {}) },
+    pricing: { ...DEFAULT_PRICING, ...(nv.pricing || {}) } };
   S.settings = after;
   if (JSON.stringify(before.rarities) !== JSON.stringify(after.rarities)) {
     S.run.lastCheck = 0;   // rareté (dé)cochée : on remplit tout de suite les places libres

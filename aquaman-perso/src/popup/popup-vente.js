@@ -2,7 +2,7 @@
 import { nsStore } from '../lib/store.js';
 const store = nsStore("vente:");
 const sendV = (type) => chrome.runtime.sendMessage({ type: "vente:" + type }).catch(() => {});
-const DEFAULTS = { enabled: false, dryRun: true, maxSlots: 50, floors: { N: 6, R: 13, SR: 51 }, rarities: { N: true, R: true, SR: true }, rotateMin: 60, checkMin: 2, scanHours: 24, writeMax: 25, writeWindowSec: 31, readDelayMs: 1200, countAuctions: true };
+const DEFAULTS = { enabled: false, dryRun: true, maxSlots: 50, floors: { N: 6, R: 13, SR: 51 }, rarities: { N: true, R: true, SR: true }, pricing: { startPct: 15, stepPct: 8, floorPct: 70 }, rotateMin: 60, checkMin: 2, scanHours: 24, writeMax: 25, writeWindowSec: 31, readDelayMs: 1200, countAuctions: true };
 const RN = { N: "Commune", R: "Rare", SR: "Épique" };
 const $ = id => document.getElementById("v-" + id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -11,12 +11,14 @@ const hm = t => new Date(t).toLocaleTimeString("fr-FR", { hour: "2-digit", minut
 // ---------- réglages ----------
 async function getSettings() {
   const { settings = {} } = await store.get("settings");
-  return { ...DEFAULTS, ...settings, floors: { ...DEFAULTS.floors, ...(settings.floors || {}) }, rarities: { ...DEFAULTS.rarities, ...(settings.rarities || {}) } };
+  return { ...DEFAULTS, ...settings, floors: { ...DEFAULTS.floors, ...(settings.floors || {}) }, rarities: { ...DEFAULTS.rarities, ...(settings.rarities || {}) },
+    pricing: { ...DEFAULTS.pricing, ...(settings.pricing || {}) } };
 }
 async function setSettings(patch) {
   const s = await getSettings();
   await store.set({ settings: { ...s, ...patch,
-    floors: { ...s.floors, ...(patch.floors || {}) }, rarities: { ...s.rarities, ...(patch.rarities || {}) } } });
+    floors: { ...s.floors, ...(patch.floors || {}) }, rarities: { ...s.rarities, ...(patch.rarities || {}) },
+    pricing: { ...s.pricing, ...(patch.pricing || {}) } } });
 }
 
 // ---------- onglets (onglet retenu entre deux ouvertures) ----------
@@ -49,6 +51,8 @@ async function initForm() {
   const s = await getSettings();
   for (const r of ["N", "R", "SR"]) { $("r" + r).checked = s.rarities[r]; $("f" + r).value = s.floors[r]; $("f" + r).disabled = !s.rarities[r]; }
   $("maxSlots").value = s.maxSlots;
+  $("startPct").value = s.pricing.startPct; $("stepPct").value = s.pricing.stepPct; $("floorPct").value = s.pricing.floorPct;
+  $("rotateMin").value = s.rotateMin;
   $("readDelay").value = String(s.readDelayMs);
   if (![...$("readDelay").options].some(o => o.value === String(s.readDelayMs))) $("readDelay").value = "1200";
   $("writeMax").value = s.writeMax;
@@ -59,6 +63,10 @@ for (const r of ["N", "R", "SR"]) {
   $("r" + r).onchange = e => { $("f" + r).disabled = !e.target.checked; setSettings({ rarities: { [r]: e.target.checked } }); };
   $("f" + r).onchange = e => { const v = clampInt(e.target.value, 1, 100000, 1); e.target.value = v; setSettings({ floors: { [r]: v } }); };
 }
+// prix : départ, baisse par rotation, plancher par carte (en %)
+for (const [k, lo, hi] of [["startPct", 0, 100], ["stepPct", 0, 50], ["floorPct", 0, 100]])
+  $(k).onchange = e => { const v = clampInt(e.target.value, lo, hi, DEFAULTS.pricing[k]); e.target.value = v; setSettings({ pricing: { [k]: v } }); };
+$("rotateMin").onchange = e => { const v = clampInt(e.target.value, 15, 240, 60); e.target.value = v; setSettings({ rotateMin: v }); };
 $("maxSlots").onchange = e => { const v = clampInt(e.target.value, 1, 50, 50); e.target.value = v; setSettings({ maxSlots: v }); };
 $("readDelay").onchange = async e => { await setSettings({ readDelayMs: Number(e.target.value) }); showEstimate(await getSettings()); };
 $("writeMax").onchange = async e => { const v = clampInt(e.target.value, 1, 29, 25); e.target.value = v; await setSettings({ writeMax: v }); showEstimate(await getSettings()); };
@@ -123,7 +131,7 @@ async function render() {
   if (p) {
     $("planTitle").textContent = `Dernière simulation · ${p.kind} ${hm(p.at)} · −${p.removed.length} / +${p.list.length}`;
     const rows = [
-      ...p.list.map(l => `<tr><td class="n R-${l.rarity}">${esc(l.name)}</td><td>${RN[l.rarity] || l.rarity} #${l.serial}</td><td class="r">${l.price} P</td><td class="muted" title="${esc(l.source)}">♥${l.wants}</td></tr>`),
+      ...p.list.map(l => `<tr><td class="n R-${l.rarity}">${esc(l.name)}</td><td>${RN[l.rarity] || l.rarity} #${l.serial}</td><td class="r">${l.from != null ? `<s class="muted">${l.from}</s> → ` : ""}${l.price} P</td><td class="muted" title="${esc(l.source)}">♥${l.wants}</td></tr>`),
       ...(p.removed.length ? [`<tr><td colspan="4" class="muted">+ retrait de ${p.removed.length} ventes actuelles</td></tr>`] : [])
     ];
     $("plan").innerHTML = rows.join("") || `<tr><td class="muted">Rien à mettre en vente.</td></tr>`;

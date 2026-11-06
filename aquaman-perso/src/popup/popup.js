@@ -28,6 +28,17 @@ document.addEventListener('click', async (e) => {
   window.close();
 });
 
+// ---------- Compléter ma collection ----------
+document.getElementById('openCompleter')?.addEventListener('click', () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('src/pages/completer.html') });
+  window.close();
+});
+
+document.getElementById('openProgression')?.addEventListener('click', () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('src/pages/progression.html') });
+  window.close();
+});
+
 // ---------- réglages ----------
 async function bindSettings() {
   const settings = await getSettings();
@@ -66,10 +77,75 @@ async function renderUpdate() {
       : `Pas encore vérifié. Dépôt : ${REPO}.`;
 }
 
+// ---------- mise à jour en un clic (assistant installé par installer-mises-a-jour.bat) ----------
+const UPD_ERRORS = {
+  no_updater: 'Assistant de mise à jour absent : double-clic sur installer-mises-a-jour.bat (une seule fois).',
+  unknown_extension: 'Le dossier de l’extension a changé : relance installer-mises-a-jour.bat.',
+  git_failed: 'git pull a échoué (modifications locales ?) : ',
+  download_failed: 'Téléchargement impossible depuis GitHub : ',
+  bad_checksum: 'Empreinte de la version absente ou illisible : mise à jour annulée.',
+  checksum_mismatch: 'Le fichier téléchargé ne correspond pas à l’empreinte publiée : mise à jour annulée.',
+  bad_package: 'Le paquet téléchargé n’est pas Aquaman (perso) : mise à jour annulée.',
+  copy_failed: 'Copie impossible (fichier ouvert ?) : l’ancienne version a été remise. ',
+  no_backup: 'Aucune sauvegarde à remettre.',
+  git_rollback: 'Dossier Git : reviens en arrière avec git (ex. git checkout <version>).',
+  bad_version: 'Numéro de version invalide.',
+  up_to_date: 'Déjà à jour.'
+};
+const updError = (r) => {
+  const base = UPD_ERRORS[r?.error] ?? `Erreur : ${r?.error || 'inconnue'}. `;
+  return /(: |\. )$/.test(base) && r?.detail ? base + String(r.detail).slice(0, 200) : base.trim();
+};
+
+async function renderUpdater() {
+  const r = await chrome.runtime.sendMessage({ type: 'updater-ping' }).catch(() => null);
+  const ok = !!r?.installed;
+  $('#upd-ready').hidden = !ok;
+  $('#upd-setup').hidden = ok;
+  const info = $('#updaterInfo');
+  info.replaceChildren();
+  info.append(ok ? `Mise à jour en un clic : prête${r.git ? ' (dossier Git : git pull)' : ''}.` : 'Mise à jour en un clic : pas installée (installer-mises-a-jour.bat, une seule fois).');
+  if (ok && r.backups?.length) {
+    const back = document.createElement('button');
+    back.type = 'button';
+    back.className = 'link';
+    back.textContent = 'Revenir à la version précédente';
+    back.addEventListener('click', async () => {
+      if (back.dataset.armed !== '1') {
+        back.dataset.armed = '1';
+        back.textContent = 'Confirmer le retour arrière';
+        return;
+      }
+      back.disabled = true;
+      info.lastChild.textContent = ' Retour arrière…';
+      const res = await chrome.runtime.sendMessage({ type: 'rollback-update' }).catch((e) => ({ error: e.message }));
+      info.lastChild.textContent = res?.ok ? ` Version ${res.version} remise, rechargement…` : ' ' + updError(res);
+    });
+    info.append(' ', back, document.createElement('span'));
+  }
+}
+
+$('#installUpdate').addEventListener('click', async () => {
+  const b = $('#installUpdate');
+  b.disabled = true;
+  b.textContent = 'Mise à jour…';
+  $('#upd-msg').textContent = 'Téléchargement et vérification de la nouvelle version…';
+  const r = await chrome.runtime.sendMessage({ type: 'install-update' }).catch((e) => ({ error: e.message }));
+  if (r?.ok) $('#upd-msg').textContent = `Version ${r.version} installée. L’extension redémarre ; recharge la page du jeu.`;
+  else {
+    $('#upd-msg').textContent = updError(r);
+    $('#upd-msg').style.color = 'var(--bad)';
+    b.disabled = false;
+    b.textContent = 'Réessayer';
+    renderUpdater();
+  }
+});
+
 $('#checkNow').addEventListener('click', async () => {
   $('#updateInfo').textContent = 'Vérification…';
   await chrome.runtime.sendMessage({ type: 'check-update', force: true }).catch(() => {});
   renderUpdate();
+renderUpdater();
 });
 
 // ---------- synchro entre appareils (Gist privé) ----------
@@ -120,3 +196,4 @@ renderSync();
 bindSettings();
 renderStatus();
 renderUpdate();
+renderUpdater();

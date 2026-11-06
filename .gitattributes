@@ -1,0 +1,2 @@
+# Les .bat gardent des fins de ligne Windows, y compris dans le zip construit par GitHub Actions.
+*.bat text eol=crlf
