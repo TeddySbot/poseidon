@@ -66,7 +66,7 @@ const TOUR = [
   {
     id: 'echanges',
     title: 'Les échanges',
-    text: 'Dans chaque proposition, les cartes sont plus grandes, avec une pastille verte si tu as déjà la carte (×2, ×3… si tu en as plusieurs) et rouge si tu ne l’as pas.',
+    text: 'Dans chaque proposition, dans le jeu comme en MP, chaque carte porte une pastille verte si tu as déjà la carte (×2, ×3… si tu en as plusieurs) et rouge si tu ne l’as pas.',
     page: '/jeu/echanges',
     target: '.aqm-trade-tile, a[data-tour="nav-/jeu/echanges"]'
   },
@@ -99,6 +99,78 @@ const TOUR = [
 
 // What's new in each version, the most recent first. An item is ['text'] or ['text', 'id of a tour step'].
 const CHANGES = [
+  {
+    version: '1.4.8',
+    items: [
+      ['Classement : « Global » compte aussi tes amis.'],
+      ['iPhone et iPad : « Installer » dans le cadre d’une nouvelle version affiche les étapes pour mettre Aquaman à jour avec Userscripts.'],
+      ['Garantie anti-malchance : un booster signalé deux fois n’est plus compté deux fois (un écart de 61 boosters pouvait apparaître pour une garantie de 60).']
+    ]
+  },
+  {
+    version: '1.4.7',
+    items: [['Historique des tirages : le pack d’où vient chaque SSR, UR et SEC, sous sa carte, et un filtre par pack. Pour les cartes tirées avant cette version, le pack est déduit de la carte : Halloween pour une carte Halloween, Classique pour les autres.'], ['Boosters rentables : en cherchant un personnage, chaque suggestion montre son image et ses raretés.'], ['Accueil : après un « Tout ouvrir », un bouton « Ouvrir les 10 suivants » à côté de « Fermer » ouvre les boosters suivants du même pack, 10 par 10 (le jeu n’en ouvre pas plus d’un coup). La fenêtre des cartes se ferme toute seule 5 s après la dernière, sur les 10 suivantes s’il en reste : un clic dans la fenêtre l’arrête.'], ['Proposer un échange : à côté de « Doublons », les filtres « Mes recherches » et « Il me manque » dans « Tu demandes », et « Il lui manque » dans « Tu donnes » (avec « Doublons » : tes doublons qu’il n’a pas).'], ['Classement : « Global » à côté de « Amis » (les joueurs vus récemment dans les Beaux tirages et les utilisateurs d’Aquaman, pas la liste complète du jeu), et un onglet « Perles » : le stock de Perles des utilisateurs d’Aquaman qui le partagent (réglage « Mes Perles au classement »).']]
+  },
+  {
+    version: '1.4.6',
+    items: [['Page d’une carte : un bouton « Enchérir » sur chaque enchère en cours, qui ouvre sa page dans le jeu.']]
+  },
+  {
+    version: '1.4.5',
+    items: [['Page d’une carte : sous les annonces du marché, les 3 enchères en cours avec la mise la plus faible, avec le nombre d’enchères et le temps restant.']]
+  },
+  {
+    version: '1.4.4',
+    items: [
+      ['Page d’une carte : après un achat avec « Acheter », la page ne se recharge plus ; tes Perles et tes exemplaires se mettent à jour sur place.'],
+      ['Collection : « ★ Favoris », « Les plus avancées » et « Masquer séries <= 5 persos » apparaissent dès l’ouverture de l’onglet.']
+    ]
+  },
+  {
+    version: '1.4.3',
+    items: [
+      ['Échanges : la pastille verte ou rouge apparaît sur toutes les pages d’échange, et sur les propositions envoyées en MP.', 'echanges'],
+      ['Échanges : les cartes gardent la taille du jeu.'],
+      ['Page d’une carte SSR, UR ou SEC : un bouton « Qui a cette carte ? » sous « Mes exemplaires » montre les joueurs qui l’ont.'],
+      ['Collection : « Masquer séries <= 5 persos », à côté de « Les plus avancées », cache les séries de 5 personnages ou moins.'],
+      ['Collection : « En vente » à côté de « Manquante » indique seulement que la carte est vendue au marché : la pastille ne s’ouvre plus.'],
+      ['Page d’une carte : les 5 annonces les moins chères du marché, sous la cote, avec « Acheter ».'],
+      ['Téléphone : le bouton « Installer » du cadre de mise à jour ouvre le script dans une page que Tampermonkey et Userscripts savent installer (avant, le fichier était seulement téléchargé).']
+    ]
+  },
+  {
+    version: '1.4.2',
+    items: [['Correction : avec « Tout ouvrir », le pack de l’animation prend l’image de la catégorie ouverte (Légendaire, Action, Magie…), et non celle de la catégorie ouverte juste avant.']]
+  },
+  {
+    version: '1.4.1',
+    items: [
+      ['Réglages : Plus › Réglages permet d’activer ou de couper chaque fonction d’Aquaman (boosters par catégorie, lueur, garantie, « Manquantes », « En vente », échanges…). La même liste sur PC et téléphone, dans l’extension comme dans le script, et dans la fenêtre de l’extension.'],
+      ['Collection : changer de série ne fait plus sauter la page ; la file d’attente des recherches reste en bas de l’écran et dans Séries favorites.'],
+      ['Correction : en ouvrant des boosters à thème (Action, Magie…), le pack de l’animation d’ouverture a bien l’image de sa catégorie, et non celle du booster classique.']
+    ]
+  },
+  {
+    version: '1.4.0',
+    items: [
+      ['Garantie anti-malchance : un bouton « Historique » ouvre ton tracker. Il montre à quelle fréquence tu tires des SSR, UR et SEC comparé à la chance du jeu, tes 300 derniers boosters d’un coup d’œil, et combien de boosters il t’a fallu pour chacune.'],
+      ['Correction : une UR ne remet plus le compteur de la garantie SSR à zéro, comme dans le jeu.'],
+      ['Accueil : la lueur derrière le booster prend la couleur de son pack (doré, cyan, rouge…).'],
+      ['Qui a cette carte ? : un même numéro n’apparaît plus chez deux joueurs ; celui vu le plus récemment l’emporte.']
+    ]
+  },
+  {
+    version: '1.3.2',
+    items: [
+      ['Collection : un bouton « En vente » à côté de chaque carte manquante que quelqu’un vend ; il ouvre les 5 annonces les moins chères du marché, avec « Acheter ». Elles ne sont plus ajoutées sur la page de la carte.'],
+      ['Accueil : « N à ouvrir » compte les boosters de la catégorie affichée, et son nom n’est plus écrit au-dessus du pack (il est déjà dessus).'],
+      ['Accueil : le booster du dessus bouge comme dans le jeu (il flotte et se tourne vers la souris), et sa lueur n’est plus coupée.'],
+      ['Correction : la page Collection ne devient plus blanche quand on clique sur « Manquantes » dans une série.'],
+      ['Échanges : la page ne gèle plus et ne plante plus quand Aquaman marque les cartes que tu as déjà.'],
+      ['Téléphone : les boosters de l’accueil gardent leur forme (ils étaient écrasés) et ne glissent plus les uns derrière les autres quand on fait défiler la page ; les boutons « Ouvrir » et « Tout ouvrir » sont l’un sous l’autre, comme dans le jeu.'],
+      ['Plus fluide : Aquaman travaille quand le navigateur est libre, se met en pause quand l’onglet est caché, et le marché comme la collection lui demandent moins de travail.']
+    ]
+  },
   {
     version: '1.3.1',
     items: [
