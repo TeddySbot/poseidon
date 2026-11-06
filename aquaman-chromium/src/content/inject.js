@@ -16,7 +16,12 @@
   const OPEN = /^\/api-game\/v1\/boosters\/([^/]+\/open|open-many|open)$/;
   const ORDERS = /^\/api-game\/v1\/market\/orders$/;
   const BUY = /^\/api-game\/v1\/shop\/booster$/;
+  const PLAYER_PATH = /^\/api-game\/v1\/(?:public\/)?(?:players|users)\/([^/?]+)/;
   const MARKET_BUY = /^\/api-game\/v1\/market\/listings\/([^/]+)\/buy$/;
+  // Changes of Perles or cards made outside the boosters (market, exchanges, auctions, copies sold or recycled): the
+  // game's status and the card of the page are read again from the API afterwards. (Not the boosters: the game counts
+  // their Perles and cards itself, and a status read again would redraw the pile in the middle of an opening.)
+  const ASSETS = /^\/api-game\/v1\/(trades(\/.*)?|market\/.*|auctions(\/.*)?|copies(\/.*)?)$/;
   const MARKET_LIST = /^\/api-game\/v1\/market\/listings$/;
   // The card of each sale the market last showed (listing id -> { name, rarity }), for the card of a purchase.
   const listingCards = new Map();
@@ -110,14 +115,63 @@
     } catch {}
   }
 
-  // content.js asks the game to read its status again (its Perles after a purchase, its boosters…).
+  // A card's page holds the card read from /cards/:id (with the player's copies) in a state of its components: the
+  // card is read again from the API and given to that state, the page draws it at once. False if no such state.
+  async function refreshCardState(id) {
+    const res = await fetch(`/api-game/v1/cards/${encodeURIComponent(id)}`, { credentials: 'include', headers: { accept: 'application/json' } });
+    if (!res.ok) return false;
+    const fresh = await res.json().catch(() => null);
+    if (!fresh || typeof fresh !== 'object') return false;
+    const card = fresh.card ?? fresh;
+    const start =
+      [...document.querySelectorAll('main p, main span, main h2, main h3')].find((el) => /^mes exemplaires$/i.test(el.textContent.trim())) ??
+      document.querySelector('main *');
+    const key = start && Object.keys(start).find((k) => k.startsWith('__reactFiber$'));
+    let done = false;
+    for (let fiber = key ? start[key] : null; fiber; fiber = fiber.return) {
+      for (let hook = typeof fiber.memoizedState === 'object' ? fiber.memoizedState : null; hook && 'next' in hook; hook = hook.next) {
+        const s = hook.memoizedState;
+        const dispatch = hook.queue?.dispatch;
+        if (typeof dispatch !== 'function' || !s || typeof s !== 'object') continue;
+        if (s.id === id && 'copies' in s) dispatch(card);
+        else if (s.card?.id === id) dispatch({ ...s, ...(fresh.card ? fresh : { card }) });
+        else continue;
+        done = true;
+      }
+    }
+    return done;
+  }
+
+  // After a change of Perles or cards, the game's status (/me: Perles…) and the card of the page are read again from
+  // the API, once for a burst of changes.
+  let assetsTimer = 0;
+  function assetsChanged() {
+    clearTimeout(assetsTimer);
+    assetsTimer = setTimeout(() => {
+      const cardId = location.pathname.match(/^\/jeu\/carte\/([^/?#]+)/)?.[1];
+      window.postMessage({ aquamanCmd: 'reload-game', cardId: cardId ? decodeURIComponent(cardId) : undefined }, location.origin);
+    }, 600);
+  }
+
+  // content.js asks the game to read its status again (its Perles after a purchase, its boosters…), and the card of
+  // its page (cardId) after a purchase: straight from the API, the page isn't loaded again.
   window.addEventListener('message', async (e) => {
     if (e.source !== window || e.data?.aquamanCmd !== 'reload-game') return;
+    if (e.data.assets) return void assetsChanged(); // a change made by Aquaman itself, outside this page's fetch
+    const { cardId, perles } = e.data;
+    let fixed = false;
+    if (typeof cardId === 'string')
+      try {
+        fixed = await refreshCardState(cardId);
+      } catch {}
+    if (!fixed)
+      try {
+        window.next?.router?.refresh?.(); // the page's own data (a card's copies…)
+      } catch {}
     try {
-      window.next?.router?.refresh?.(); // the page's own data (a card's copies…)
-    } catch {}
-    try {
-      await (await gameStore())?.load().catch(() => {});
+      const store = await gameStore();
+      if (typeof perles === 'number') store?.setPerles?.(perles); // the Perles the purchase answered, at once
+      await store?.load().catch(() => {}); // then the game's status read again from /me
     } catch {}
   });
 
@@ -262,13 +316,135 @@
   // Rarities of the cards of one booster's answer ({ pulls: [{ card: { rarity } }] }).
   const raritiesOf = (pulls) => pulls.map((p) => p?.card?.rarity ?? p?.rarity).filter((r) => RARITIES.includes(r));
 
-  // The boosters of an opening answer: one booster, or several (open-many).
+  // The boosters of an opening answer: one booster, or several (open-many), each as the pulls of its cards.
   function openedBoosters(body) {
-    if (Array.isArray(body?.pulls)) return [raritiesOf(body.pulls)];
+    if (Array.isArray(body?.pulls)) return [body];
     const list = body?.boosters ?? body?.results ?? body?.opened ?? (Array.isArray(body) ? body : null);
-    if (Array.isArray(list)) return list.filter((b) => Array.isArray(b?.pulls)).map((b) => raritiesOf(b.pulls));
-    return [];
+    return Array.isArray(list) ? list.filter((b) => Array.isArray(b?.pulls)) : [];
   }
+  // The kind of each booster of an opening ({ id, name }, null when unknown): from the answer, else from the booster's
+  // id (in the path or the body of the request) among the waiting ones, else the kind Aquaman shows the game, else
+  // the only kind waiting.
+  // The game's id of each booster of an opening (null when unknown): from the answer, else from the request (its path
+  // or its body). Aquaman records each booster under it, so that a booster told twice is counted once.
+  function askedIds(path, init) {
+    let asked = [];
+    try {
+      const sent = typeof init?.body === 'string' ? JSON.parse(init.body) : null;
+      asked = [sent?.ids, sent?.boosterIds, sent?.boosters].find(Array.isArray) ?? (sent?.boosterId ? [sent.boosterId] : []);
+    } catch {}
+    const inPath = path.match(/\/boosters\/([^/]+)\/open$/)?.[1];
+    if (inPath) asked = [decodeURIComponent(inPath)];
+    return asked.map((x) => x?.id ?? x);
+  }
+  function boosterIdsOf(boosters, path, init) {
+    const asked = askedIds(path, init);
+    return boosters.map((b, i) => {
+      const id = b?.boosterId ?? b?.booster?.id ?? (asked.length === boosters.length ? asked[i] : null);
+      return typeof id === 'string' && /^[A-Za-z0-9_.:-]{1,60}$/.test(id) ? id : null;
+    });
+  }
+
+  function packsOf(boosters, path, init, waiting) {
+    const list = Array.isArray(waiting) ? waiting : [];
+    const named = (id, name) => ({ id: id ?? 'classic', name: name ?? list.find((b) => (b?.kindId ?? 'classic') === (id ?? 'classic'))?.kindName ?? (id && id !== 'classic' ? null : 'Classique') });
+    const asked = askedIds(path, init);
+    const shown = chosenKind();
+    const kinds = new Set(list.map((b) => b?.kindId ?? 'classic'));
+    return boosters.map((b, i) => {
+      const kindId = b?.kindId ?? b?.booster?.kindId;
+      if (kindId) return named(kindId, b?.kindName ?? b?.booster?.kindName);
+      const id = b?.boosterId ?? b?.booster?.id ?? (asked.length === boosters.length ? asked[i] : null) ?? b?.id;
+      const known = id != null && list.find((x) => x?.id === id);
+      if (known) return named(known.kindId, known.kindName);
+      if (shown) return named(shown);
+      return kinds.size === 1 ? named([...kinds][0]) : null;
+    });
+  }
+  // The best card of a booster ({ id, name, image, rarity }), for the history of the pity.
+  function bestCard(pulls) {
+    let best = null;
+    for (const p of pulls) {
+      const card = p?.card ?? p;
+      const rarity = card?.rarity ?? p?.rarity;
+      if (RARITIES.includes(rarity) && (!best || RARITIES.indexOf(rarity) > RARITIES.indexOf(best.rarity)))
+        best = { id: card.id ?? null, name: card.name ?? null, image: card.image ?? null, rarity };
+    }
+    return best;
+  }
+
+  // ---------- the picture of a themed kind in the 3D pack of the opening ----------
+  // The game draws the pack of its opening window in 3D (three.js) with the classic picture (classique.webp) when it
+  // opens several boosters, whatever their kind. While Aquaman opens a themed kind (content.js writes its picture in
+  // data-aqm-opening-art), that picture takes the classic one's place each time the game draws it or sends it to the
+  // 3D: the same size (720 × 1080), nothing else changes. The classic picture the game keeps is never changed itself,
+  // so each opening gets the picture of its own kind.
+  const CLASSIC_ART = /\/game\/boosters\/classique\.(webp|png|jpe?g)/i;
+  const openingArt = () => document.documentElement.getAttribute('data-aqm-opening-art') || '';
+  const isClassicUrl = (url) => {
+    try {
+      return CLASSIC_ART.test(decodeURIComponent(String(url ?? '')));
+    } catch {
+      return CLASSIC_ART.test(String(url ?? ''));
+    }
+  };
+  const bitmap = globalThis.createImageBitmap;
+  const classicBlobs = new WeakSet(); // the classic picture fetched by the game
+  const classicBitmaps = new WeakSet(); // and made into bitmaps
+  const arts = new Map(); // picture -> { img, bitmap }, loaded once
+  const artOf = (url) => {
+    if (!arts.has(url)) {
+      const art = { img: new Image(), bitmap: null };
+      art.img.decoding = 'async';
+      art.img.addEventListener('load', () => bitmap?.call(globalThis, art.img).then((b) => (art.bitmap = b)).catch(() => {}), { once: true });
+      art.img.src = url;
+      arts.set(url, art);
+    }
+    return arts.get(url);
+  };
+  new MutationObserver(() => openingArt() && artOf(openingArt())).observe(document.documentElement, { attributes: true, attributeFilter: ['data-aqm-opening-art'] });
+  // The themed picture to use in place of a classic one (as an image or a bitmap, like the source), once loaded.
+  const swapFor = (source) => {
+    const url = openingArt();
+    if (!url || !source) return null;
+    if (source instanceof HTMLImageElement) {
+      if (!isClassicUrl(source.currentSrc || source.src)) return null;
+      const { img } = artOf(url);
+      return img.complete && img.naturalWidth ? img : null;
+    }
+    if (globalThis.ImageBitmap && source instanceof ImageBitmap && classicBitmaps.has(source)) return artOf(url).bitmap;
+    return null;
+  };
+  const blob = Response.prototype.blob;
+  Response.prototype.blob = function () {
+    const out = blob.call(this);
+    if (isClassicUrl(this.url)) out.then((b) => classicBlobs.add(b)).catch(() => {});
+    return out;
+  };
+  if (bitmap)
+    globalThis.createImageBitmap = function (source, ...rest) {
+      const out = bitmap.call(this, source, ...rest);
+      const classic = (source instanceof HTMLImageElement && isClassicUrl(source.currentSrc || source.src)) || (source instanceof Blob && classicBlobs.has(source));
+      if (classic) out.then((b) => classicBitmaps.add(b)).catch(() => {});
+      return out;
+    };
+  for (const proto of [CanvasRenderingContext2D.prototype, globalThis.OffscreenCanvasRenderingContext2D?.prototype].filter(Boolean)) {
+    const draw = proto.drawImage;
+    proto.drawImage = function (source, ...rest) {
+      return draw.call(this, swapFor(source) ?? source, ...rest);
+    };
+  }
+  for (const proto of [globalThis.WebGLRenderingContext?.prototype, globalThis.WebGL2RenderingContext?.prototype].filter(Boolean))
+    for (const name of ['texImage2D', 'texSubImage2D']) {
+      const upload = proto[name];
+      proto[name] = function (...args) {
+        for (let i = 0; i < args.length; i++) {
+          const swap = swapFor(args[i]);
+          if (swap) args[i] = swap;
+        }
+        return upload.apply(this, args);
+      };
+    }
 
   // Only the requests to the game's API are looked at; the others (analytics, images…) go straight through.
   window.fetch = function (input, init) {
@@ -279,6 +455,7 @@
 
   async function watch(pending, path, input, init) {
     const self = !!window.__aquamanSelf; // a request of Aquaman itself (userscript)
+    const waiting = fullPending; // the boosters waiting when the request left (an opening: those it opens)
     const res = await pending;
     try {
       const method = String(init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
@@ -323,6 +500,15 @@
           .clone()
           .json()
           .then(learnCopies)
+          .catch(() => {});
+      // A player whose cards the game reads (the partner of an exchange…): their id with their name, for the filter
+      // "Il lui manque" of the exchanges.
+      const player = path && res.ok && method === 'GET' ? path.match(PLAYER_PATH)?.[1] : null;
+      if (player)
+        res
+          .clone()
+          .json()
+          .then((body) => post({ type: 'player-seen', id: decodeURIComponent(player), name: body?.player?.name ?? body?.user?.name ?? body?.name ?? null }))
           .catch(() => {});
       if (path && res.ok) {
         if (method === 'GET' && ME.test(path)) {
@@ -377,10 +563,21 @@
               .clone()
               .json()
               .then((body) => {
-                const boosters = openedBoosters(body).filter((b) => b.length);
-                if (boosters.length) post({ type: 'opened', boosters });
+                const all = openedBoosters(body);
+                const packs = packsOf(all, path, init, waiting);
+                const ids = boosterIdsOf(all, path, init);
+                const opened = all.map((b, i) => ({ pulls: b.pulls, pack: packs[i], id: ids[i] })).filter((b) => raritiesOf(b.pulls).length);
+                if (opened.length)
+                  post({
+                    type: 'opened',
+                    boosters: opened.map((b) => raritiesOf(b.pulls)),
+                    best: opened.map((b) => bestCard(b.pulls)),
+                    packs: opened.map((b) => b.pack),
+                    ids: opened.map((b) => b.id)
+                  });
               })
               .catch(() => {});
+          if (ASSETS.test(path) && res.ok) assetsChanged();
           post({ type: 'collection-stale' });
         }
       }

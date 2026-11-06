@@ -502,11 +502,27 @@ html.aqm-lock {
   }
 }
 
+/* ---------- Page d'une carte : « Qui a cette carte ? » ---------- */
+
+.aqm-card-who {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.aqm-card-who-icon,
+.aqm-card-who-icon svg {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.aqm-card-who-row {
+  margin-top: 12px;
+}
+
 /* ---------- Échanges ---------- */
 
-.aqm-trade-tile {
-  zoom: 1.3;
-}
 .aqm-dot {
   position: absolute;
   top: 3px;
@@ -641,6 +657,19 @@ html.aqm-lock {
   border-color: #2563eb;
   background: #2563eb;
 }
+/* iPhone: the steps of the update with Userscripts. */
+.aqm-update-steps {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.aqm-update .aqm-muted {
+  margin: 8px 0 0;
+  font-size: 12px;
+}
 
 /* ---------- Visite guidée ---------- */
 
@@ -768,9 +797,6 @@ html.aqm-lock {
   }
   .aqm-pull-thumb {
     zoom: 1.4;
-  }
-  .aqm-trade-tile {
-    zoom: 1.2;
   }
   .aqm-tour-actions {
     flex-wrap: wrap;
@@ -930,6 +956,329 @@ html.aqm-grabbing * {
   text-align: center;
   color: var(--aqm-dim);
 }
+.aqm-pity-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+/* Historique des tirages (window of the pity's "Historique"): the tracker, the last boosters, the cards got */
+.aqm-history {
+  display: grid;
+  gap: 14px;
+}
+.aqm-history-count {
+  margin: 0;
+  font-size: 12px;
+  color: var(--aqm-dim);
+}
+.aqm-rates {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.aqm-rate {
+  --aqm-rate: 148, 163, 184;
+  position: relative;
+  padding: 14px 16px;
+  border: 1px solid rgba(var(--aqm-rate), 0.22);
+  border-radius: 18px;
+  background: radial-gradient(120% 90% at 0% 0%, rgba(var(--aqm-rate), 0.14), transparent 60%), var(--aqm-card);
+  overflow: hidden;
+}
+.aqm-rate.is-SSR {
+  --aqm-rate: 253, 224, 71;
+}
+.aqm-rate.is-UR {
+  --aqm-rate: 244, 114, 182;
+}
+.aqm-rate.is-SEC {
+  --aqm-rate: 196, 181, 253;
+}
+.aqm-rate-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 900;
+  font-style: italic;
+}
+.aqm-rate-value {
+  margin: 10px 0 0;
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+}
+.aqm-rate-value small {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--aqm-dim);
+}
+.aqm-rate-sub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--aqm-dim);
+}
+.aqm-rate-foot {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--aqm-line);
+  font-size: 11px;
+  color: var(--aqm-dim);
+}
+.aqm-luck {
+  font-size: 10px;
+  font-style: normal;
+}
+.aqm-luck.is-good {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
+}
+.aqm-luck.is-bad {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+}
+.aqm-history-box {
+  padding: 14px 16px;
+  border: 1px solid var(--aqm-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.aqm-history-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.aqm-history-row .aqm-label {
+  margin: 0;
+}
+.aqm-tracker-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8px, 1fr));
+  gap: 3px;
+}
+.aqm-cell {
+  display: inline-block;
+  height: 16px;
+  min-width: 8px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.07);
+  vertical-align: middle;
+}
+.aqm-cell.is-SSR {
+  background: #fde047;
+  box-shadow: 0 0 8px rgba(253, 224, 71, 0.45);
+}
+.aqm-cell.is-UR {
+  background: #f472b6;
+  box-shadow: 0 0 8px rgba(244, 114, 182, 0.55);
+}
+.aqm-cell.is-SEC {
+  background: linear-gradient(180deg, #c4b5fd, #67e8f9);
+  box-shadow: 0 0 10px rgba(196, 181, 253, 0.9);
+}
+.aqm-tracker-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--aqm-dim);
+}
+.aqm-tracker-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.aqm-tracker-legend .aqm-cell {
+  width: 8px;
+  height: 12px;
+}
+.aqm-history-tabs {
+  display: flex;
+  gap: 4px;
+  width: fit-content;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+}
+.aqm-history-tabbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--aqm-dim);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.aqm-history-tabbtn.is-on {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--aqm-text);
+}
+.aqm-history-tabcount {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  text-align: center;
+}
+.aqm-history-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0;
+}
+.aqm-history-stat {
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--aqm-card);
+}
+.aqm-history-stat small {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--aqm-dim);
+}
+.aqm-history-stat strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 14px;
+}
+.aqm-history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 12px;
+  max-height: 440px;
+  padding: 2px 6px 2px 2px;
+  overflow-y: auto;
+}
+/* A card got: its picture alone, sharp (no frame, no movement), and the boosters it took under it. */
+.aqm-history-tile {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.aqm-history-tile > img,
+.aqm-history-blank {
+  display: block;
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  border-radius: 10px;
+  object-fit: cover;
+}
+.aqm-history-tile:hover > img {
+  filter: brightness(1.12);
+}
+.aqm-history-blank {
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 22px;
+  font-weight: 900;
+  font-style: italic;
+}
+.aqm-history-after {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+}
+.aqm-history-pack {
+  margin: 2px 0 0;
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--aqm-dim);
+}
+.aqm-history-pack.is-unknown {
+  opacity: 0.6;
+}
+/* The filter per pack, above the tabs of the rarities. */
+.aqm-history-packs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.aqm-history-packbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--aqm-dim);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.aqm-history-packbtn.is-on {
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--aqm-text);
+}
+.aqm-history-empty {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--aqm-dim);
+}
+@media (max-width: 640px) {
+  .aqm-rates {
+    grid-template-columns: 1fr;
+  }
+  .aqm-history-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .aqm-history-grid {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  }
+}
+
+/* Scroll bars of Aquaman's windows and lists: thin, dark, rounded. */
+.aqm-root,
+.aqm-root * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+.aqm-root::-webkit-scrollbar,
+.aqm-root *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.aqm-root::-webkit-scrollbar-track,
+.aqm-root *::-webkit-scrollbar-track {
+  background: transparent;
+}
+.aqm-root::-webkit-scrollbar-thumb,
+.aqm-root *::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18) padding-box;
+}
+.aqm-root::-webkit-scrollbar-thumb:hover,
+.aqm-root *::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.32) padding-box;
+}
+.aqm-root::-webkit-scrollbar-button,
+.aqm-root *::-webkit-scrollbar-button {
+  display: none;
+}
 @media (max-width: 640px) {
   .aqm-pity-lines {
     grid-template-columns: 1fr;
@@ -970,6 +1319,93 @@ html.aqm-grabbing * {
 }
 .aqm-pick .aqm-search {
   width: min(520px, 100%);
+}
+/* The window of cards after a "Tout ouvrir": the seconds before it closes (on the next ones, or alone). */
+.aqm-open-count {
+  margin-left: 2px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.25);
+  font-variant-numeric: tabular-nums;
+}
+.aqm-open-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+/* The suggestions of the search field: the picture of a card, the name, the rarities. */
+.aqm-suggest-box {
+  position: relative;
+  width: min(520px, 100%);
+}
+.aqm-suggest-box .aqm-search {
+  width: 100%;
+}
+.aqm-suggest {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 360px;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--aqm-line);
+  border-radius: 14px;
+  background: var(--aqm-panel);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+}
+.aqm-suggest[hidden] {
+  display: none;
+}
+.aqm-suggest-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.aqm-suggest-item:hover,
+.aqm-suggest-item[aria-selected='true'] {
+  background: rgba(255, 255, 255, 0.07);
+}
+.aqm-suggest-item > img,
+.aqm-suggest-blank {
+  flex-shrink: 0;
+  width: 34px;
+  height: 48px;
+  border-radius: 5px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.05);
+}
+.aqm-suggest-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.aqm-suggest-name small {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--aqm-dim);
+}
+.aqm-suggest-rarities {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
 }
 .aqm-sentence {
   display: flex;
@@ -1270,6 +1706,127 @@ html.aqm-grabbing * {
 .aqm-switch input {
   margin-top: 3px;
   accent-color: #2563eb;
+}
+.aqm-switch.is-off {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Réglages: a card per group, each setting with its title, its hint and a switch on the right. */
+.aqm-settings-groups {
+  columns: 2 340px;
+  column-gap: 14px;
+}
+.aqm-settings-group {
+  break-inside: avoid;
+  margin: 0 0 14px;
+  padding: 6px 0;
+  border: 1px solid var(--aqm-line);
+  border-radius: 18px;
+  background: var(--aqm-card);
+}
+.aqm-settings-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 16px 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #93c5fd;
+}
+.aqm-settings-title span {
+  font-size: 15px;
+  letter-spacing: 0;
+}
+.aqm-setting {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+.aqm-setting + .aqm-setting {
+  border-top: 1px solid var(--aqm-line);
+}
+.aqm-setting:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+.aqm-setting.is-off {
+  cursor: default;
+  opacity: 0.45;
+}
+.aqm-setting-text {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+.aqm-setting-text strong {
+  font-size: 14px;
+  color: var(--aqm-text);
+}
+.aqm-setting-text small {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--aqm-dim);
+}
+.aqm-toggle {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 24px;
+  margin: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.aqm-toggle::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.aqm-toggle:checked {
+  background: #2563eb;
+}
+.aqm-toggle:checked::before {
+  transform: translateX(16px);
+}
+.aqm-toggle:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+.aqm-toggle:disabled {
+  cursor: default;
+}
+.aqm-settings-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+.aqm-settings-foot p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--aqm-dim);
+}
+.aqm-settings-actions {
+  display: flex;
+  gap: 8px;
 }
 
 /* ---------- Qui a tiré… ? ---------- */
@@ -1946,14 +2503,38 @@ html.aqm-grabbing * {
   align-self: auto;
   max-width: none;
   width: 100%;
-  padding: 0 0 8px;
+  /* (room above for the count badge and the pack that rises under the pointer) */
+  padding: 28px 0 8px;
   overflow: hidden;
+  /* Cut on the sides only (the piles beside): the glow of a pack goes over the title and below. */
+  overflow-x: clip;
+  overflow-y: visible;
+}
+/* The glow behind the booster in front, in the colour of its pack (paintGlow); it fades from one colour to the next. */
+@property --aqm-glow {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: rgb(37 99 235 / 0.38);
 }
 .aqm-wheel {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  isolation: isolate;
+  transition: --aqm-glow 0.6s ease;
+}
+.aqm-wheel::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: min(560px, 100%);
+  aspect-ratio: 1;
+  background: radial-gradient(closest-side, var(--aqm-glow, rgb(37 99 235 / 0.38)), transparent);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 .aqm-wheel-track {
   display: grid;
@@ -1987,21 +2568,28 @@ html.aqm-grabbing * {
 .aqm-pile:not(.is-front) .aqm-pile-art {
   pointer-events: none;
 }
-.aqm-pile-name {
-  margin: 0;
-  color: #93c5fd;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+/* The booster on top, as in the game: it floats, and turns toward the pointer (tiltOnHover). */
+.aqm-pile-art [class*='__packPose'] {
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.aqm-pile-art {
-  transition: transform 0.25s ease-out, filter 0.25s;
+.aqm-pile-art .aqm-pose-follow {
+  transition: transform 0.15s ease-out;
 }
-.aqm-pile-art.is-hover {
-  transform: perspective(900px) rotateX(var(--aqm-tilt-x, 0deg)) rotateY(var(--aqm-tilt-y, 0deg)) translateY(-8px) scale(1.03);
-  filter: drop-shadow(0 18px 30px rgba(37, 99, 235, 0.35));
-  transition: transform 0.08s linear, filter 0.25s;
+.aqm-pile.is-front [data-aqm-float] {
+  animation: aqm-pack-float 2.35s ease-in-out infinite alternate;
+}
+@keyframes aqm-pack-float {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -16px, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aqm-pile.is-front [data-aqm-float] {
+    animation: none;
+  }
 }
 .aqm-wheel-arrow {
   position: absolute;
@@ -2048,9 +2636,14 @@ html.aqm-grabbing * {
   border-radius: 999px;
   background: #3b82f6;
 }
+/* Drawn again (a new width): the piles go to their places at once, without sliding there. */
+.aqm-piles.is-still .aqm-pile {
+  transition: none;
+}
 @media (max-width: 640px) {
-  .aqm-pile {
-    zoom: 0.72;
+  /* The game's buttons one under the other, as the game shows them on a phone. */
+  .aqm-wheel-controls > * {
+    flex-direction: column;
   }
   .aqm-wheel-arrow {
     width: 36px;
@@ -2133,6 +2726,30 @@ html.aqm-grabbing * {
 [data-aqm-owned-card] {
   display: none !important;
 }
+/* "Manquante" and Aquaman's "En vente" on one line. */
+[data-aqm-sale='on'] {
+  display: inline-block !important;
+  margin-right: 8px !important;
+  vertical-align: middle;
+}
+/* Only a sign: a click goes through to the game's card. */
+.aqm-sale {
+  display: inline-block;
+  flex: none;
+  padding: 1px 7px;
+  border: 1px solid rgba(59, 130, 246, 0.6);
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.22);
+  color: #93c5fd;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+  white-space: nowrap;
+  text-transform: uppercase;
+  vertical-align: middle;
+  pointer-events: none;
+}
 [data-aqm-pill-off] {
   opacity: 0 !important;
 }
@@ -2181,6 +2798,15 @@ html.aqm-grabbing * {
   border-radius: 14px;
   background: var(--aqm-card);
   font-size: 13px;
+}
+.aqm-user .aqm-user-revoke {
+  flex: none;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.aqm-tag.aqm-revoked {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
 }
 .aqm-user .aqm-avatar {
   width: 32px;
@@ -2284,4 +2910,34 @@ html.aqm-grabbing * {
 }
 [data-aqm-unfav] {
   display: none !important;
+}
+/* The filters of Aquaman in the window of an exchange, beside the game's chips. */
+.aqm-trade-filter.is-on {
+  background: #1e3a5f !important;
+  color: #fff !important;
+}
+.aqm-trade-filter.is-on.is-off {
+  opacity: 0.55;
+}
+[data-aqm-tradehide] {
+  display: none !important;
+}
+/* A card's page: its running auctions, under the market's offers. */
+.aqm-auctions-head {
+  margin-top: 18px;
+}
+.aqm-auction-cell {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+/* "Enchérir": a link to the auction's page, drawn like the "Acheter" button (not like a player's name). */
+.aqm-owner a.aqm-buy {
+  display: inline-flex;
+  align-items: center;
+  overflow: visible;
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
 }

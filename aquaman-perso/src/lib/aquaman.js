@@ -8,21 +8,76 @@ export const RANK = { N: 1, R: 2, SR: 3, SSR: 4, UR: 5, SEC: 6 };
 
 // ---------- settings ----------
 
-export const DEFAULTS = {
-  notifyBoosters: true,
-  notifyUpdated: true,
-  // Version perso : aucun partage, rien ne quitte le navigateur (ces réglages restent forcés à false).
-  syncPity: false,
-  syncFavorites: false,
-  syncWants: false,
-  syncMarket: false,
-  sharePulls: false,
-  // Version perso : lecture seule de la base publique du relais de l'auteur (rien n'y est envoyé). false pour couper.
-  relayRead: true
-};
-// Jamais de partage public. La garantie anti-malchance et les favoris se synchronisent seulement entre TES appareils,
-// par ton Gist GitHub privé, quand un jeton est enregistré (voir « synchro entre appareils » plus bas).
-const OFF = { syncWants: false, syncMarket: false, sharePulls: false };
+// Every setting, by group: the same list in the extension's popup and in "Plus › Réglages" (extension and script, on
+// a computer or a phone). All are on at first. Each item: [key, title, hint, only] (only: "extension" for what the
+// script can't do).
+export const SETTINGS = [
+  {
+    title: 'Accueil',
+    icon: '🏠',
+    items: [
+      ['boosterWheel', 'Boosters par catégorie', 'Classique, Magie, Action… côte à côte, avec le compte de chacun'],
+      ['openMore', 'Ouvrir les 10 suivants', 'Après un « Tout ouvrir », un bouton ouvre les boosters suivants du même pack, 10 par 10'],
+      ['openMoreAuto', 'Fermeture automatique', 'Après un « Tout ouvrir », la fenêtre des cartes se ferme 5 s après la dernière (sur les 10 suivantes s’il en reste)'],
+      ['packGlow', 'Lueur du pack', 'La lueur derrière le booster prend la couleur de son pack'],
+      ['pity', 'Garantie anti-malchance', 'Les boosters avant ta prochaine SSR et UR, et l’historique de tes tirages'],
+      ['bigPulls', 'Beaux tirages agrandis', 'Les dernières cartes rares tirées par les joueurs, en plus grand']
+    ]
+  },
+  {
+    title: 'Collection',
+    icon: '🗂️',
+    items: [
+      ['seriesTools', 'Bande des séries', 'Étoiles des séries favorites, tri « Les plus avancées » et bouton « Masquer séries <= 5 persos »'],
+      ['albumButtons', 'Boutons de l’album', '« Ajouter aux favoris » et « Rechercher les manquantes »'],
+      ['missingTab', 'Onglet « Manquantes »', 'Seulement les cartes qu’il te manque'],
+      ['missingSales', 'Pastille « En vente »', 'Sur les cartes manquantes vendues au marché'],
+      ['cardWho', 'Bouton « Qui a cette carte ? »', 'Sur la page des cartes SSR, UR et SEC : les joueurs qui l’ont']
+    ]
+  },
+  {
+    title: 'Marché',
+    icon: '🛒',
+    items: [
+      ['hideBought', 'Masquer ce que je viens d’acheter', 'Les autres annonces d’une carte achetée disparaissent'],
+      ['marketFavorites', 'Filtre « ★ Favoris »', 'Les ventes de tes séries favorites seulement'],
+      ['cardListings', 'Annonces sur la page d’une carte', 'Les 5 annonces les moins chères, avec « Acheter », et les enchères en cours'],
+      ['sellTools', 'Vente des doublons', 'File d’attente de « Vendre mes doublons » et bouton « Retirer mes ventes »']
+    ]
+  },
+  {
+    title: 'Échanges et vitrine',
+    icon: '🔁',
+    items: [
+      ['tradeMarks', 'Échanges', 'Pastille « déjà possédée » sur les cartes des échanges, dans le jeu et en MP'],
+      ['tradeFilters', 'Filtres des échanges', 'Proposer un échange : « Mes recherches », « Il me manque » et « Il lui manque » à côté de « Doublons »'],
+      ['showcaseDrag', 'Ma vitrine', 'Glisser-déposer pour ranger tes cartes'],
+      ['recycleHelp', 'Recycler des cartes', 'Rien de coché au départ, bouton « Tout cocher »']
+    ]
+  },
+  {
+    title: 'Notifications',
+    icon: '🔔',
+    items: [
+      ['notifyBoosters', 'Nouveaux boosters', 'Une notification quand des boosters t’attendent', 'extension'],
+      ['notifyUpdated', 'Nouveautés', 'Ce qui a changé, après une mise à jour d’Aquaman']
+    ]
+  },
+  {
+    title: 'Partage et relais',
+    icon: '☁️',
+    items: [
+      // Version perso : garantie et favoris passent seulement par ton Gist GitHub privé (jeton dans les réglages).
+      ['syncPity', 'Garantie anti-malchance', 'Le compte des boosters ouverts et l’historique, par ton Gist privé'],
+      ['syncFavorites', 'Séries favorites', 'Les mêmes séries sur PC et téléphone, par ton Gist privé'],
+      ['relayRead', 'Lire la base publique du relais', 'Classement global, Perles des autres, détenteurs, beaux tirages. Lecture seule : rien de chez toi n’est envoyé']
+    ]
+  }
+];
+
+// Version perso : rien n'est jamais envoyé au relais (ces réglages restent forcés à false, voir OFF).
+const OFF = { syncWants: false, syncMarket: false, sharePulls: false, sharePerles: false };
+export const DEFAULTS = { ...Object.fromEntries(SETTINGS.flatMap((g) => g.items.map(([key]) => [key, true]))), syncPity: false, syncFavorites: false, ...OFF };
 
 // Settings with their default values.
 export async function getSettings() {
@@ -228,6 +283,47 @@ export async function playerSummary(id) {
   return { id, name: sc.player?.name ?? null, private: false, owned: sc.owned ?? 0, total: sc.total ?? 0, albums: sc.albums?.length ?? 0 };
 }
 
+// The Perles of players who use Aquaman and share them ({ [id]: perles }), from the relay; the player's own from the
+// game, always.
+export async function sharedPerles(ids) {
+  const me = await myId();
+  const out = {};
+  const others = [...new Set(ids)].filter((id) => id && id !== me);
+  for (let i = 0; i < others.length; i += 400)
+    try {
+      const res = await relayAsk('/perles', { ids: others.slice(i, i + 400) }); // version perso : lit les Perles des autres, n'envoie pas les tiennes
+      if (!res.ok) throw new Error(`relay_${res.status}`);
+      for (const p of (await res.json()).players ?? []) out[p.id] = p.perles;
+    } catch {}
+  if (ids.includes(me))
+    try {
+      out[me] = (await gameStatus()).perles;
+    } catch {}
+  return out;
+}
+
+// The players of the "Global" leaderboard: the player's friends, those the relay saw lately in the "beaux tirages"
+// and those who share their Perles with Aquaman (not every player of the game: the game gives no such list).
+// [{ id, name }]
+export async function globalPlayers() {
+  const me = await myId();
+  const read = async (path) => {
+    const res = await relayGet(path); // version perso : lecture seule
+    if (!res.ok) throw new Error(`relay_${res.status}`);
+    return (await res.json()).players ?? [];
+  };
+  const [mates, seen, rich] = await Promise.all([
+    friends()
+      .then((f) => f.friends)
+      .catch(() => []),
+    read('/players?limit=150').catch(() => []),
+    read('/perles/top?limit=150').catch(() => [])
+  ]);
+  const byId = new Map();
+  for (const p of [...mates, ...rich, ...seen]) if (p?.id && p.id !== me && !byId.has(p.id)) byId.set(p.id, { id: p.id, name: p.name ?? null });
+  return { me, players: [...byId.values()] };
+}
+
 // The logged-in player and their friends.
 export async function friends() {
   const me = await myId();
@@ -274,6 +370,10 @@ function collectCards(data) {
           rarity: v.rarity,
           types: Array.isArray(v.types) ? v.types : [],
           extra: !!(v.variant || v.seasonId || v.baseId),
+          // a card of the Halloween event: its type, its season or its picture say so
+          halloween: [v.types, v.seasonId, v.season?.id, v.season?.name, v.season?.slug, v.season?.title, v.event, v.theme, v.image]
+            .flat()
+            .some((x) => typeof x === 'string' && /hallow/i.test(x)),
           series: s ? { id: s.id, title: s.title, slug: s.slug } : null
         });
       return;
@@ -476,11 +576,29 @@ export async function boosterReport(query = '', rarity = '', field = '') {
   const match = q ? (field === 'name' ? inName : field === 'series' ? inSeries : (c) => inName(c) || inSeries(c)) : null;
   const pick = RANK[rarity] ? rarity : '';
   const rows = boosterList(shop).map((b) => ({ b, a: analyse(b, { rarities, catalog, mine, values, match, rarity: pick }) }));
-  // Names (or series) matching what was typed, for the suggestions of the search field.
-  const suggestions =
-    q && catalog
-      ? [...new Set(catalog.filter(field === 'series' ? inSeries : inName).map((c) => (field === 'series' ? c.series?.title : c.name)))].filter(Boolean).slice(0, 8)
-      : [];
+  // Names (or series) matching what was typed, for the suggestions of the search field: { name, image, rarities }
+  // (rarities: the codes of its cards, lowest first; image: a card of it, its base one first, then the rarest).
+  const suggestions = [];
+  if (q && catalog) {
+    const byName = new Map();
+    for (const c of catalog.filter(field === 'series' ? inSeries : inName)) {
+      const name = field === 'series' ? c.series?.title : c.name;
+      if (!name) continue;
+      if (!byName.has(name)) byName.set(name, { name, cards: [] });
+      byName.get(name).cards.push(c);
+    }
+    // (the names starting with what was typed first)
+    const starts = (name) => (fold(name).startsWith(q) ? 0 : 1);
+    for (const { name, cards } of [...byName.values()].sort((a, b) => starts(a.name) - starts(b.name)).slice(0, 8)) {
+      const cover = [...cards].sort((a, b) => a.extra - b.extra || (RANK[b.rarity] ?? 0) - (RANK[a.rarity] ?? 0)).find((c) => c.image);
+      suggestions.push({
+        name,
+        image: cover?.image ?? null,
+        rarities: [...new Set(cards.map((c) => c.rarity))].sort((a, b) => (RANK[a] ?? 0) - (RANK[b] ?? 0)),
+        cards: cards.length
+      });
+    }
+  }
   return {
     rows,
     suggestions,
@@ -505,6 +623,16 @@ async function relayGet(path) {
   if ((await getSettings()).relayRead === false) return offline();
   try {
     return await fetch(RELAY + path, { method: 'GET', credentials: 'omit', referrerPolicy: 'no-referrer', signal: AbortSignal.timeout(6000) });
+  } catch {
+    return offline();
+  }
+}
+
+// Version perso : une lecture du relais qui doit passer par POST (liste d'ids à lire, jamais tes données).
+async function relayAsk(path, body) {
+  if ((await getSettings()).relayRead === false) return offline();
+  try {
+    return await fetch(RELAY + path, { method: 'POST', credentials: 'omit', referrerPolicy: 'no-referrer', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(6000) });
   } catch {
     return offline();
   }
@@ -665,6 +793,21 @@ function secChance() {
   }).catch(() => null);
 }
 
+// Chance that the best card of one everyday booster is a SSR, an UR or a SEC, from the game's odds, without the
+// guarantees ({ SSR, UR, SEC }); null if unknown.
+function rarityChances() {
+  return cached('rarity-chances', 30 * 60e3, async () => {
+    const rarities = await game('/rarities').then((r) => r.rarities ?? []);
+    if (!rarities.length) return null;
+    const slots = slotOdds(rarities, new Set(rarities.map((r) => r.code)), RANK.R);
+    // (a card of this rank or better in the booster)
+    const atLeast = (rank) => 1 - slots.reduce((miss, slot) => miss * (1 - Object.entries(slot).reduce((p, [c, v]) => p + ((RANK[c] ?? 0) >= rank ? v : 0), 0)), 1);
+    const out = {};
+    for (const code of ['SSR', 'UR', 'SEC']) out[code] = atLeast(RANK[code]) - atLeast(RANK[code] + 1);
+    return out;
+  }).catch(() => null);
+}
+
 // The SEC, which the game doesn't guarantee: boosters since the last one (the relay's count when it has one, as it
 // goes further back), and the chance of one per booster (chance).
 function secReport(mine, chance) {
@@ -680,14 +823,16 @@ function secReport(mine, chance) {
   return { since: sec.since, known: !!sec.known, chance };
 }
 
-// What's left before each guarantee; "known" once a card of that rarity was seen, else an upper bound.
+// What's left before each guarantee; "known" once a card of that rarity was seen, else an upper bound. Each counter
+// starts again only with a card of its own rarity: an UR doesn't reset the SSR one (the history shows SSR coming 60
+// boosters after the previous SSR across an UR).
 function pityReport(mine, rules, sync, chance = null) {
   const { events } = mine;
   const out = { opened: events.length, sync: sync ? (mine.syncError ? 'error' : mine.syncedAt ? 'ok' : 'waiting') : 'off', syncedAt: mine.syncedAt || null };
   for (const code of Object.keys(PITY)) {
     let last = -1;
     for (let i = events.length - 1; i >= 0; i--)
-      if (events[i].top >= RANK[code]) {
+      if (events[i].top === RANK[code]) {
         last = i;
         break;
       }
@@ -699,10 +844,18 @@ function pityReport(mine, rules, sync, chance = null) {
   return out;
 }
 
+// The kind of booster of an opening ({ id, name }), checked; null when unknown.
+function cleanPack(p) {
+  const id = typeof p?.id === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(p.id) ? p.id : null;
+  return id ? { id, name: typeof p.name === 'string' && p.name.trim() ? p.name.trim().slice(0, 60) : null } : null;
+}
+
 // Merges two lists of openings: each booster once, oldest first, the last PITY_EVENTS.
 function mergeEvents(a, b) {
   const byId = new Map();
-  for (const e of [...a, ...b]) if (e?.id && !byId.has(e.id)) byId.set(e.id, { id: String(e.id), at: Number(e.at) || 0, top: Number(e.top) || 0 });
+  for (const e of [...a, ...b])
+    if (e?.id && !byId.has(e.id))
+      byId.set(e.id, { id: String(e.id), at: Number(e.at) || 0, top: Number(e.top) || 0, ...(e.card ? { card: e.card } : {}), ...(e.pack ? { pack: e.pack } : {}) });
   return [...byId.values()].sort((x, y) => x.at - y.at).slice(-PITY_EVENTS);
 }
 
@@ -738,16 +891,107 @@ export async function pity(fresh = false) {
   return pityReport(state.mine, state.rules, on, await secChance());
 }
 
+// The player's history: for SSR, UR and SEC, each one got with the boosters opened for it since the previous one of
+// that rarity, over all the openings the relay keeps (a year) and this device's.
+// first: the count started with Aquaman, the real one may be higher. current: boosters opened since the last one.
+export async function pityHistory() {
+  const state = await pityState();
+  let events = state.mine.events;
+  let pulls = [];
+  if ((await getSettings()).syncPity)
+    try {
+      const all = await cached(`pity-all:${state.id}`, 60e3, async () => {
+        const res = await offline(`/pity/all`, { // version perso : ton historique n'est pas demandé au relais
+          method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ player: state.id }) });
+        if (!res.ok) throw new Error(`relay_${res.status}`);
+        return res.json();
+      });
+      pulls = all.pulls ?? [];
+      const byId = new Map();
+      for (const e of [...(all.events ?? []), ...events]) {
+        if (!e?.id) continue;
+        const known = byId.get(e.id);
+        if (!known) byId.set(e.id, { at: Number(e.at) || 0, top: Number(e.top) || 0, card: e.card ?? null, pack: e.pack ?? null });
+        else {
+          if (!known.card && e.card) known.card = e.card;
+          if (!known.pack && e.pack) known.pack = e.pack;
+        }
+      }
+      events = [...byId.values()].sort((a, b) => a.at - b.at);
+    } catch {}
+  // The card of each SSR, UR and SEC: the one kept when it was opened, else the player's pull of that rarity in the
+  // game's "beaux tirages" (relay) within 10 minutes of it, each pull given once.
+  const used = new Set();
+  const cardOf = (e, code) => {
+    if (e.card) return e.card;
+    let best = null;
+    for (const [i, p] of pulls.entries()) {
+      if (used.has(i) || p.rarity !== code) continue;
+      const gap = Math.abs(p.at - e.at);
+      if (gap < 10 * 60e3 && (!best || gap < best.gap)) best = { i, gap, p };
+    }
+    if (!best) return null;
+    used.add(best.i);
+    return { id: best.p.id, name: best.p.name, image: best.p.image, rarity: code };
+  };
+  const codeOf = (top) => Object.keys(RANK).find((k) => RANK[k] === top);
+  for (const e of events) if (e.top >= RANK.SSR) e.card = cardOf(e, codeOf(e.top));
+  await guessPacks(events);
+  // (the tracker: the best rarity of the last 300 boosters, oldest first, and the game's odds)
+  const out = { opened: events.length, since: events[0]?.at ?? null, recent: events.slice(-300).map((e) => e.top), chances: await rarityChances() };
+  // (each rarity on its own: an UR is not counted among the SSR)
+  for (const code of ['SSR', 'UR', 'SEC']) {
+    const hits = [];
+    let count = 0;
+    for (const e of events) {
+      count++;
+      if (e.top !== RANK[code]) continue;
+      hits.push({ at: e.at, top: codeOf(e.top) ?? code, card: e.card ?? null, pack: e.pack ?? null, after: count, first: !hits.length });
+      count = 0;
+    }
+    out[code] = { hits: hits.reverse(), current: count };
+  }
+  return out;
+}
+
+// The pack of the SSR, UR and SEC opened before Aquaman kept it (1.4.7), from their card: a Halloween card can only
+// come from the Halloween pack, any other is taken as from the Classique one (guessed: true). Left unknown without
+// the card or the game's catalogue.
+async function guessPacks(events) {
+  const missing = events.filter((e) => e.top >= RANK.SSR && !e.pack && e.card?.id);
+  if (!missing.length) return;
+  const catalog = await loadCatalog();
+  if (!catalog) return;
+  const byId = new Map(catalog.map((c) => [c.id, c]));
+  const designs = await globalPacks();
+  const halloween = Object.entries(designs ?? {}).find(([, d]) => /halloween/i.test(d?.name ?? ''))?.[0]?.replace(/--n\d+$/, '') ?? 'halloween';
+  for (const e of missing) {
+    const c = byId.get(e.card.id);
+    if (!c) continue;
+    e.pack = c.halloween ? { id: halloween, name: 'Halloween', guessed: true } : { id: 'classic', name: 'Classique', guessed: true };
+  }
+}
+
 // Records opened boosters, each as the rarities of its cards; every opening gets its own id, sent once to the relay.
-export async function recordOpening(boosters) {
+// best: the best card of each booster, and packs: its kind ({ id, name }), kept with the SSR, UR and SEC for the history.
+// ids: the game's id of each booster, when known: the opening is kept under it ("g:<id>"), so that a booster told twice
+// (the same answer read twice) is counted once; else a random id.
+export async function recordOpening(boosters, best = [], packs = [], ids = []) {
   const state = await pityState();
   const { mine, rules } = state;
   const now = Date.now();
-  const added = boosters.map((rarities, i) => ({
-    id: `${(now + i).toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
-    at: now + i,
-    top: Math.max(0, ...rarities.map((r) => RANK[r] ?? 0))
-  }));
+  const known = new Set(mine.events.map((e) => e.id));
+  const added = boosters
+    .map((rarities, i) => {
+      const top = Math.max(0, ...rarities.map((r) => RANK[r] ?? 0));
+      const c = best[i];
+      const card = top >= RANK.SSR && c?.id ? { id: String(c.id), name: c.name ?? null, image: c.image ?? null, rarity: c.rarity } : null;
+      const pack = top >= RANK.SSR ? cleanPack(packs[i]) : null;
+      const gameId = typeof ids[i] === 'string' && /^[A-Za-z0-9_.:-]{1,60}$/.test(ids[i]) ? `g:${ids[i]}` : null;
+      return { id: gameId ?? `${(now + i).toString(36)}-${Math.random().toString(36).slice(2, 10)}`, at: now + i, top, ...(card ? { card } : {}), ...(pack ? { pack } : {}) };
+    })
+    .filter((e, i, all) => !known.has(e.id) && all.findIndex((x) => x.id === e.id) === i);
+  if (!added.length) return pityReport(mine, rules, (await getSettings()).syncPity, await secChance());
   mine.events = mergeEvents(mine.events, added);
   // The relay's SEC count goes on with the new openings until the next exchange.
   if (mine.sec) mine.sec = added.some((e) => e.top >= RANK.SEC) ? null : { ...mine.sec, since: mine.sec.since + added.length };
@@ -788,6 +1032,54 @@ async function searchedIds() {
   const [wanted, waiting] = await Promise.all([wantedIds().catch(() => new Set()), waitingIds()]);
   for (const id of waiting) wanted.add(id);
   return wanted;
+}
+
+// Image keys of the cards searched by the player (the filters of the exchanges tell the cards by their picture):
+// the pictures of the game's list, and the catalogue's for Aquaman's waiting ones.
+async function searchedImages() {
+  const keys = new Set();
+  const [ids, catalog] = await Promise.all([searchedIds(), loadCatalog()]);
+  try {
+    const { wants } = await cached('wants', 30e3, () => game('/wants'));
+    for (const w of wants ?? []) {
+      const key = imageKey(w?.card?.image);
+      if (key) keys.add(key);
+    }
+  } catch {}
+  for (const c of catalog ?? []) {
+    const key = ids.has(c.id) && imageKey(c.image);
+    if (key) keys.add(key);
+  }
+  return [...keys];
+}
+
+// The copies of another player by image key ({ found, private, byImage }), for the filter "Il lui manque" of the
+// exchanges: by their id, else by their name among the friends, then among the players the relay saw.
+async function playerOwnership({ id, name } = {}) {
+  if (typeof id !== 'string' || !id) id = name ? await playerIdByName(name) : null;
+  if (!id) return { found: false };
+  const sc = await showcase(id);
+  if (sc?.private) return { found: true, private: true };
+  return { found: true, private: false, byImage: countCopies(sc).byImage };
+}
+
+async function playerIdByName(name) {
+  const n = fold(name);
+  if (!n) return null;
+  try {
+    const hit = (await friends()).friends.find((f) => fold(f.name) === n);
+    if (hit) return hit.id;
+  } catch {}
+  try {
+    const { players } = await cached('relay-players', 10 * 60e3, async () => {
+      const res = await relayGet(`/players?limit=300`);
+      if (!res.ok) throw new Error(`relay_${res.status}`);
+      return res.json();
+    });
+    return (players ?? []).find((p) => fold(p.name) === n)?.id ?? null;
+  } catch {
+    return null;
+  }
 }
 
 // The cards waiting in Aquaman.
@@ -1198,7 +1490,48 @@ export async function cardListings(id) {
       return { id: l.id ?? null, price: l.price, serial: l.serial ?? l.copy?.serial ?? null, player: seller ? { id: seller.id, name: seller.name } : null };
     })
     .sort((a, b) => a.price - b.price);
-  return { offers: offers.slice(0, 5), count: offers.length, maxCopies: card.maxCopies ?? null };
+  return { offers: offers.slice(0, 5), count: offers.length, maxCopies: card.maxCopies ?? null, name: card.name ?? null };
+}
+
+// The auctions of a card still running, the lowest bid first: the bid to beat (the highest bid, else the
+// starting price), its end, its number, its seller and how many bids it has. The game's answer is read loosely (its
+// fields may have other names): an auction whose card or bid can't be found is left out.
+export async function cardAuctions(id) {
+  const body = await cached('auctions', 30e3, () => game('/auctions'));
+  const list = Array.isArray(body) ? body : body?.auctions ?? body?.items ?? body?.data ?? [];
+  const num = (...v) => v.find((x) => typeof x === 'number' && Number.isFinite(x)) ?? null;
+  const time = (v) => (v == null ? null : typeof v === 'number' ? (v < 1e12 ? v * 1000 : v) : Date.parse(v) || null);
+  const now = Date.now();
+  return list
+    .filter((a) => (a?.card?.id ?? a?.cardId ?? a?.copy?.card?.id ?? a?.copy?.cardId) === id)
+    .map((a) => {
+      const top = a.highestBid ?? a.topBid ?? a.lastBid ?? null;
+      const seller = a.seller ?? a.player ?? a.owner ?? null;
+      return {
+        id: a.id ?? null,
+        bid: num(a.currentBid, a.currentPrice, typeof top === 'number' ? top : top?.amount, top?.price, a.bid, a.price, a.startingBid, a.startingPrice, a.startPrice, a.minBid),
+        bids: num(a.bidCount, a.bidsCount, a._count?.bids, Array.isArray(a.bids) ? a.bids.length : null),
+        endsAt: time(a.endsAt ?? a.endAt ?? a.endDate ?? a.expiresAt ?? a.closesAt),
+        serial: a.serial ?? a.copy?.serial ?? null,
+        player: seller ? { id: seller.id, name: seller.name } : null
+      };
+    })
+    .filter((a) => a.bid != null && !(a.endsAt && a.endsAt <= now))
+    .sort((a, b) => a.bid - b.bid || (a.endsAt ?? Infinity) - (b.endsAt ?? Infinity));
+}
+
+// A missing card of the collection, known by its id or else by its picture (image: its file name), found among the
+// cards of its series or by its name: how many offers the market has of it.
+export async function cardSale(id, image, name, series) {
+  const same = (c) => String(c.image ?? '').split(/[?#]/)[0].split('/').pop() === image;
+  if (!id && image && series) id = (await seriesCards(series).catch(() => [])).find(same)?.id ?? null;
+  if (!id && image && name && name.length >= 2) {
+    const { cards } = await cached(`card-search:${fold(name)}`, 5 * 60e3, () => game(`/cards?q=${encodeURIComponent(name)}&limit=12`));
+    id = (cards ?? []).find(same)?.id ?? null;
+  }
+  if (!id) return null;
+  const r = await cardListings(id);
+  return { id, name: r.name, count: r.count };
 }
 
 // Everyone Aquaman can see with a card: holders (limited cards), sellers, friends, and recent pulls.
@@ -1238,7 +1571,18 @@ export async function cardOwners(id) {
   // The players whose collection was read after one of their beaux tirages, other than the player and their friends.
   const known = await relayHoldings(id);
   const mateIds = new Set(mates.map((m) => m.player.id));
-  const seen = (known?.owners ?? []).filter((o) => o.player?.id && !mateIds.has(o.player.id));
+  // A numbered copy has one owner: the one seen now (a friend's collection, an offer of the market) wins over the
+  // relay's readings, which may be hours old (the copy changed hands since), and the most recent reading over the
+  // older ones. A player left without any of their copies is not shown.
+  const taken = new Set([...mates.flatMap((m) => m.serials), ...market.map((m) => m.serial)].filter((n) => n != null));
+  const seen = [];
+  for (const o of [...(known?.owners ?? [])].sort((a, b) => (b.seenAt ?? 0) - (a.seenAt ?? 0))) {
+    if (!o.player?.id || mateIds.has(o.player.id)) continue;
+    const serials = (o.serials ?? []).filter((n) => !taken.has(n));
+    const count = (o.count ?? 1) - ((o.serials ?? []).length - serials.length);
+    serials.forEach((n) => taken.add(n));
+    if (count > 0) seen.push({ ...o, serials, count });
+  }
 
   const remote = await relayPulls({ card: id, limit: 200 });
   if (remote?.pulls) await recordFeed(remote.pulls, true);
@@ -1312,22 +1656,51 @@ export async function ownersAmong(cardId, players) {
 const HELLO_EVERY = 9.5 * 60e3; // content.js says hello every 10 minutes while a page of the game is open
 
 // Tells the relay, every 10 minutes at most, that this player uses Aquaman (kind: "extension" or "userscript").
+// revoked: the author took Aquaman back from this player; asked again at each start until given back.
 export async function sayHello(kind) {
   return { ok: true, skipped: true }; // version perso : rien n'est signalé à personne
   const id = await myId();
-  const { helloAt = 0, helloKind, helloFor } = await chrome.storage.local.get(['helloAt', 'helloKind', 'helloFor']);
-  if (Date.now() - helloAt < HELLO_EVERY && helloKind === kind && helloFor === id) return { ok: true, skipped: true };
+  const { helloAt = 0, helloKind, helloFor, helloShare, revokedFor } = await chrome.storage.local.get(['helloAt', 'helloKind', 'helloFor', 'helloShare', 'revokedFor']);
+  const revoked = revokedFor === id;
+  // The Perles of the player go with it when they share them (the leaderboard); a change of the setting is told at once.
+  const share = (await getSettings()).sharePerles !== false;
+  if (!revoked && Date.now() - helloAt < HELLO_EVERY && helloKind === kind && helloFor === id && helloShare === share) return { ok: true, skipped: true, revoked };
   let name = null;
   try {
     name = (await showcase(id)).player?.name ?? null;
   } catch {}
+  let perles = null;
   const res = await offline(`/hello`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ player: id, name, kind, version: chrome.runtime.getManifest().version })
+    body: JSON.stringify({ player: id, name, kind, version: chrome.runtime.getManifest().version, ...(share && perles == null ? {} : { perles }) })
   });
-  if (res.ok) await chrome.storage.local.set({ helloAt: Date.now(), helloKind: kind, helloFor: id });
-  return { ok: res.ok };
+  if (!res.ok) return { ok: false, revoked };
+  const now = !!(await res.json().catch(() => null))?.revoked;
+  await chrome.storage.local.set({ helloAt: Date.now(), helloKind: kind, helloFor: id, helloShare: share });
+  if (now) await chrome.storage.local.set({ revokedFor: id });
+  else if (revoked) await chrome.storage.local.remove('revokedFor');
+  return { ok: true, revoked: now };
+}
+
+// Whether the author took Aquaman back from this player, asked to the relay once a minute at most; when the relay
+// doesn't answer, the last answer known.
+export async function access() {
+  const id = await myId();
+  return { revoked: false }; // version perso : l'auteur ne peut pas couper cette version, et ton id n'est pas envoyé
+  return cached(`access:${id}`, 50e3, async () => {
+    const { revokedFor } = await chrome.storage.local.get('revokedFor');
+    try {
+      const res = await fetch(`${RELAY}/access?player=${encodeURIComponent(id)}`);
+      if (!res.ok) return { revoked: revokedFor === id };
+      const revoked = !!(await res.json()).revoked;
+      if (revoked) await chrome.storage.local.set({ revokedFor: id });
+      else if (revokedFor === id) await chrome.storage.local.remove('revokedFor');
+      return { revoked };
+    } catch {
+      return { revoked: revokedFor === id };
+    }
+  });
 }
 
 // ---------- the author's devices: a key per device, approved once ----------
@@ -1443,16 +1816,34 @@ export async function answer(msg) {
         return { id: await myId() };
       case 'ownership':
         return await ownership();
+      case 'shared-perles':
+        return { perles: await sharedPerles(Array.isArray(msg.ids) ? msg.ids : []) };
+      case 'global-players':
+        return await globalPlayers();
+      case 'searched-images':
+        return { keys: await searchedImages() };
+      case 'player-ownership':
+        return await playerOwnership(msg);
+      case 'card-images':
+        return { keys: (await loadCatalog())?.map((c) => imageKey(c.image)).filter(Boolean) ?? null };
       case 'friends':
         return await friends();
       case 'player':
         return await playerSummary(msg.id);
       case 'boosters':
         return await boosterReport(msg.query, msg.rarity, msg.field);
+      case 'access':
+        return await access();
+      case 'settings':
+        return { groups: SETTINGS, values: await getSettings() };
+      case 'set-settings':
+        return { values: await setSettings(msg.patch ?? {}) };
+      case 'pity-history':
+        return await pityHistory();
       case 'pity':
         return await pity(!!msg.fresh);
       case 'opened':
-        return await recordOpening(msg.boosters ?? []);
+        return await recordOpening(msg.boosters ?? [], msg.best ?? [], msg.packs ?? [], msg.ids ?? []);
       case 'pity-rules':
         return await setPityRules(msg.rules);
       case 'favorites':
@@ -1483,8 +1874,12 @@ export async function answer(msg) {
       case 'card-search':
         return { cards: await searchCards(msg.query) };
       case 'card-listings':
-        if (msg.fresh) forget(`listings:${msg.id}`, 'showcase:');
-        return await cardListings(msg.id);
+        if (msg.fresh) forget(`listings:${msg.id}`, 'showcase:', 'auctions');
+        return { ...(await cardListings(msg.id)), auctions: await cardAuctions(msg.id).catch(() => null) };
+      case 'card-sale':
+        return await cardSale(msg.id ?? null, msg.image ?? null, msg.name ?? null, msg.series ?? null);
+      case 'card-rarity':
+        return { rarity: (await cached(`rarity:${msg.id}`, 60 * 60e3, () => game(`/cards/${encodeURIComponent(msg.id)}`)))?.rarity ?? null };
       case 'card-owners':
         return await cardOwners(msg.id);
       case 'known-players':
@@ -1504,6 +1899,8 @@ export async function answer(msg) {
       case 'admin-approve':
         return { error: 'disabled' };
       case 'admin-revoke':
+        return { error: 'disabled' };
+      case 'admin-revoke-player':
         return { error: 'disabled' };
       case 'who-pulled':
         return await whoPulled(msg.query, msg.rarity);
