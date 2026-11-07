@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Mes doubles · Aquaman</title>
+<link rel="icon" href="../../icons/icon48.png">
+<style>
+  :root { color-scheme:dark; --bg:#0b0b0d; --panel:#18181b; --panel2:#202024; --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14); --txt:#f4f4f5; --mut:#a1a1aa; --acc:#60a5fa; --blue:#2563eb; --ok:#22c55e; --bad:#f87171; --sim:#fbbf24; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  a { color:var(--acc); text-decoration:none; } a:hover { text-decoration:underline; }
+  .wrap { max-width:1200px; margin:0 auto; padding:28px 16px 48px; }
+  header { display:flex; flex-wrap:wrap; align-items:center; gap:10px 12px; margin-bottom:20px; }
+  header img { width:40px; height:40px; border-radius:12px; }
+  header .t { flex:1; min-width:220px; }
+  .kick { font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--acc); }
+  header h1 { margin:0; font-size:24px; font-weight:900; font-style:italic; text-transform:uppercase; }
+  .statusline { width:100%; color:var(--mut); font-size:13px; }
+  .statusline.run { color:var(--sim); } .statusline.err { color:var(--bad); }
+  button { height:36px; padding:0 16px; border:1px solid transparent; border-radius:999px; background:var(--blue); color:#fff; font:inherit; font-weight:750; cursor:pointer; }
+  button.ghost { background:rgba(255,255,255,.05); border-color:var(--line2); color:var(--txt); }
+  button:disabled { opacity:.5; cursor:default; }
+  button:hover:not(:disabled) { filter:brightness(1.12); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:16px; }
+  .card h2 { margin:0 0 12px; font-size:11px; text-transform:uppercase; letter-spacing:.14em; color:var(--acc); font-weight:800; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .card h2 .sp { flex:1; }
+  .tiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:16px; }
+  .tile { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 16px; }
+  .tile .lab { color:var(--mut); font-size:12px; font-weight:600; }
+  .tile .val { font-size:28px; font-weight:900; font-variant-numeric:tabular-nums; margin-top:2px; }
+  .tile .sub { color:var(--mut); font-size:12px; margin-top:2px; }
+  .tile.hero { background:linear-gradient(135deg, rgba(37,99,235,.22), rgba(24,24,27,1) 60%); border-color:rgba(96,165,250,.3); }
+  .tile.hero .val { color:#bfdbfe; }
+  .bar { height:8px; border-radius:99px; background:var(--panel2); overflow:hidden; min-width:90px; }
+  .bar i { display:block; height:100%; background:var(--blue); border-radius:99px; }
+  .bar.done i { background:var(--ok); }
+  .tablewrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th, td { padding:7px 8px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; vertical-align:middle; }
+  th { color:var(--mut); font-weight:700; font-size:12px; }
+  th:first-child, td:first-child { text-align:left; }
+  td.l { text-align:left; white-space:normal; }
+  td.w { width:30%; }
+  tr.total td { font-weight:800; border-top:2px solid var(--line2); }
+  .R-N { color:#cbd5e1; } .R-R { color:#60a5fa; } .R-SR { color:#c084fc; } .R-SSR { color:#fbbf24; } .R-UR { color:#f87171; } .R-SEC { color:#f472b6; }
+  .muted { color:var(--mut); } .note { color:var(--mut); font-size:12px; margin-top:8px; }
+  .up { color:#86efac; }
+  .empty { color:var(--mut); padding:12px 0; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .field { height:34px; border-radius:10px; border:1px solid var(--line2); background:var(--panel2); color:var(--txt); padding:0 10px; font:inherit; }
+  .chips { display:flex; flex-wrap:wrap; gap:4px; justify-content:flex-start; }
+  .chip { font-size:11.5px; font-weight:700; padding:1px 7px; border-radius:99px; border:1px solid var(--line2); white-space:nowrap; }
+  .chip.full { opacity:.45; }
+  tr.srow { cursor:pointer; } tr.srow:hover td { background:rgba(255,255,255,.03); }
+  tr.detail td { background:var(--panel2); }
+  .miss { display:flex; flex-wrap:wrap; gap:6px; padding:4px 0; }
+  .cc { width:96px; font-size:11px; line-height:1.25; }
+  .cc img { width:100%; aspect-ratio:5/7; object-fit:cover; border-radius:8px; background:#111; display:block; }
+  .cc .n { font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:3px; }
+  .pill { font-size:11px; font-weight:800; padding:2px 8px; border-radius:99px; border:1px solid rgba(34,197,94,.4); color:#86efac; }
+  .pill.warn { color:#fde68a; border-color:rgba(251,191,36,.4); }
+  .chart svg { width:100%; height:200px; display:block; }
+  .scroll { max-height:640px; overflow:auto; }
+
+  button.small { height:30px; padding:0 12px; font-size:12.5px; }
+  button.armed { background:#ea580c; }
+  button.ok { background:#15803d; }
+  .scroll { max-height:560px; overflow:auto; }
+  td.c, th.c { text-align:center; width:34px; }
+  input[type=checkbox] { width:16px; height:16px; accent-color:#2563eb; cursor:pointer; }
+  .num { width:84px; height:30px; text-align:right; }
+  .thumb { width:30px; height:42px; object-fit:cover; border-radius:5px; background:#111; vertical-align:middle; margin-right:8px; }
+  .namecell { display:flex; align-items:center; }
+  .bottom { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:12px; }
+  .bottom .sp { flex:1; }
+  .log div { padding:3px 0; border-bottom:1px solid var(--line); font-size:12.5px; }
+  .log .error { color:var(--bad); } .log .sold { color:#86efac; } .log .skip { color:var(--mut); }
+  .warn { color:var(--sim); font-size:12.5px; }
+  tr.sel td { background:rgba(37,99,235,.08); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="../../icons/icon48.png" alt="">
+    <div class="t"><div class="kick">Aquaman · Collection</div><h1>Mes doubles</h1></div>
+    <button id="recount">Tout recompter</button>
+    <button id="toProgression" class="ghost">← Ma progression</button>
+    <div class="statusline" id="status"></div>
+  </header>
+
+  <div class="tiles">
+    <div class="tile hero"><div class="lab">Exemplaires en trop</div><div class="val" id="kExtra">–</div><div class="sub">en gardant 1 exemplaire de chaque carte</div></div>
+    <div class="tile"><div class="lab">Cartes en double</div><div class="val" id="kCards">–</div><div class="sub" id="kCardsSub"></div></div>
+    <div class="tile"><div class="lab">Si tout était recyclé</div><div class="val" id="kRecy">–</div><div class="sub">Perles (valeur de recyclage)</div></div>
+    <div class="tile"><div class="lab">Places de vente</div><div class="val" id="kSlots">–</div><div class="sub" id="kSlotsSub">ordres en cours (50 au plus)</div></div>
+    <div class="tile"><div class="lab">File d’attente</div><div class="val" id="kQueue">–</div><div class="sub">exemplaires à mettre en vente</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Par rareté</h2>
+    <div class="tablewrap"><table id="rarity"></table></div>
+    <div class="note">Exemplaires en trop = tout sauf 1 exemplaire par carte. Compté carte par carte d’après « Ma progression » (sans la limite des 2000 exemplaires du site).</div>
+  </div>
+
+  <div class="card">
+    <h2>Cartes en double <span class="sp"></span><span class="muted" id="listCount"></span></h2>
+    <div class="controls">
+      <input id="q" class="field" placeholder="Chercher une carte ou une série" style="flex:1;min-width:200px">
+      <select id="r" class="field"><option value="">Toutes raretés</option></select>
+      <select id="min" class="field">
+        <option value="1">1 en trop ou plus</option>
+        <option value="2">2 en trop ou plus</option>
+        <option value="3">3 en trop ou plus</option>
+        <option value="5">5 en trop ou plus</option>
+      </select>
+      <select id="sort" class="field">
+        <option value="rarity">Rareté la plus haute</option>
+        <option value="extra">Le plus d’exemplaires en trop</option>
+        <option value="az">A → Z</option>
+        <option value="series">Par série</option>
+      </select>
+    </div>
+    <div class="tablewrap scroll"><table id="list"></table></div>
+    <div class="bottom">
+      <span id="selInfo" class="muted">Aucune carte cochée.</span><span class="sp"></span>
+      <button id="clearSel" class="ghost small">Tout décocher</button>
+      <button id="prepare" disabled>Préparer la vente</button>
+    </div>
+    <div class="note">« Préparer » relit les exemplaires et les prix des cartes cochées (80 au plus, ~2 s par carte). Rien n’est mis en vente à cette étape.</div>
+  </div>
+
+  <div class="card" id="planCard" hidden>
+    <h2>Vente à valider <span class="sp"></span><span class="muted" id="planAt"></span></h2>
+    <div class="tablewrap scroll"><table id="plan"></table></div>
+    <div class="bottom">
+      <span id="planInfo"></span><span class="sp"></span>
+      <button id="planClear" class="ghost small">Vider</button>
+      <button id="sell" class="ok">Mettre en vente</button>
+    </div>
+    <div class="note">On garde toujours l’exemplaire au plus petit #serial ; on vend les plus gros serials d’abord. Exemplaires bloqués, liés, protégés ou déjà en vente : jamais touchés. Prix conseillé = vente la moins chère des autres − 1, jamais sous 70 % du prix de référence (médiane des ventes récentes ou estimation du site). Commission du marché : 5 %. Ce qui dépasse les 50 places part en file d’attente.</div>
+  </div>
+
+  <div class="card">
+    <h2>File d’attente <span class="sp"></span>
+      <button id="runNow" class="ghost small">Réessayer maintenant</button>
+      <button id="stop" class="ghost small">Arrêter</button>
+      <button id="clearQueue" class="ghost small">Vider la file</button>
+    </h2>
+    <div class="tablewrap"><table id="queue"></table></div>
+    <div class="note">Retentée toutes les 2 min tant qu’elle n’est pas vide : dès qu’une de tes ventes part, une place se libère. Chaque exemplaire est relu juste avant d’être mis en vente.</div>
+  </div>
+
+  <div class="card">
+    <h2>Journal</h2>
+    <div class="log scroll" id="log"></div>
+  </div>
+</div>
+<script type="module" src="doubles.js"></script>
+</body>
+</html>

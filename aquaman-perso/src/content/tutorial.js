@@ -100,6 +100,15 @@ const TOUR = [
 // What's new in each version, the most recent first. An item is ['text'] or ['text', 'id of a tour step'].
 const CHANGES = [
   {
+    version: '1.9.0',
+    items: [
+      ['Nouvelle page « Mes doubles » (fenêtre d’Aquaman › Mes doubles, ou tuile Doubles de « Ma progression ») : tous tes exemplaires en trop, comptés carte par carte, sans la limite des 2000 exemplaires du jeu (la fenêtre « Recycler » du jeu n’en montre qu’une partie).'],
+      ['Mise en vente des doubles en quelques clics : tu gardes toujours l’exemplaire au plus petit #serial, prix conseillé modifiable, confirmation obligatoire. Au-delà des 50 ordres en cours permis par le jeu, le reste attend dans une file retentée toutes les 2 min.'],
+      ['Ma progression : tuile « Doubles » (exemplaires en trop et cartes en double).'],
+      ['Interrupteur « Aquaman sur le site » dans la fenêtre : coupe les fonctions sur le site sans arrêter la Vente auto, les Alertes et le reste.']
+    ]
+  },
+  {
     version: '1.8.0',
     items: [
       ['Aquaman perso reprend les nouveautés de l’Aquaman officiel 1.3.2 à 1.4.8 (détail ci-dessous) : filtres des échanges, enchères et « Qui a cette carte ? » sur la page d’une carte, « En vente » et « Masquer séries <= 5 persos » dans la Collection, historique des tirages par pack, « Ouvrir les 10 suivants », classement Global et Perles, Plus › Réglages.'],

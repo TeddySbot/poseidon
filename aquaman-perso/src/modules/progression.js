@@ -86,7 +86,7 @@ export function summarize(series, catalog, albums = [], me = null) {
   const blank = () => Object.fromEntries(RARITIES.map((r) => [r, { owned: 0, total: 0, evOwned: 0, evTotal: 0 }]));
   const byRarity = blank();
   const rows = [];
-  let owned = 0, total = 0, evOwned = 0, evTotal = 0, copies = 0, partial = 0;
+  let owned = 0, total = 0, evOwned = 0, evTotal = 0, copies = 0, partial = 0, dupCards = 0, dupCopies = 0;
   const albumOf = new Map(albums.map((a) => [a.series?.id, a]));
   for (const s of series) {
     const c = catalog[s.id];
@@ -101,6 +101,10 @@ export function summarize(series, catalog, albums = [], me = null) {
           if (k.owned) b.evOwned++;
         }
         copies += k.owned;
+        if (k.owned > 1) {
+          dupCards++; // cartes que j'ai en au moins 2 exemplaires
+          dupCopies += k.owned - 1; // exemplaires en trop (on garde 1 de chaque)
+        }
       }
       for (const [k, v] of Object.entries(r)) {
         const g = byRarity[k] ?? (byRarity[k] = { owned: 0, total: 0, evOwned: 0, evTotal: 0 });
@@ -137,6 +141,8 @@ export function summarize(series, catalog, albums = [], me = null) {
     eventOwned: evOwned,
     eventTotal: evTotal,
     copies,
+    dupCards,
+    dupCopies,
     byRarity,
     series: rows,
     seriesCount: rows.length,

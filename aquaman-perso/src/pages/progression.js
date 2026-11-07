@@ -45,6 +45,8 @@ function render() {
   $('kMiss').textContent = fmt(V.total - V.owned);
   const near = V.series.filter((s) => s.total > s.owned && s.total - s.owned <= 2).length;
   $('kMissSub').textContent = near ? `${near} série(s) à 1 ou 2 cartes de la fin` : '';
+  $('kDup').textContent = V.dupCopies != null ? fmt(V.dupCopies) : '–';
+  $('kDupSub').textContent = V.dupCards != null ? `exemplaires en trop · ${fmt(V.dupCards)} carte(s) en double${V.partial ? ' (lecture incomplète)' : ''}` : 'clique sur « Actualiser »';
   $('kSer').textContent = `${fmt(V.complete)} / ${fmt(V.seriesCount)}`;
   $('kSerSub').textContent = p1(V.complete, V.seriesCount) + ' des séries';
   $('kEv').textContent = `${fmt(V.eventOwned)} / ${fmt(V.eventTotal)}`;
@@ -160,6 +162,8 @@ for (const r of RARITY_ORDER) $('r').insertAdjacentHTML('beforeend', `<option va
 for (const id of ['q', 'f', 'r', 'sort']) $(id).addEventListener(id === 'q' ? 'input' : 'change', () => V && renderSeries());
 $('refresh').addEventListener('click', () => send(ST.running ? 'stop' : 'refresh'));
 $('full').addEventListener('click', () => send('full'));
+$('doubles').addEventListener('click', () => (location.href = 'doubles.html'));
+$('dupTile').addEventListener('click', () => (location.href = 'doubles.html'));
 $('completer').addEventListener('click', () => (location.href = 'completer.html'));
 $('series').addEventListener('click', async (e) => {
   const row = e.target.closest('tr.srow');

@@ -4,7 +4,8 @@
 //   - Alertes Marché (src/modules/alertes.js) ;
 //   - Vente auto (src/modules/vente.js) ;
 //   - Compléter ma collection (src/modules/completer.js) : propositions d'échange, envoyées seulement après confirmation ;
-//   - Ma progression (src/modules/progression.js) : avancement par rareté et par série, photo quotidienne.
+//   - Ma progression (src/modules/progression.js) : avancement par rareté et par série, photo quotidienne ;
+//   - Mes doubles (src/modules/doubles.js) : exemplaires en trop, mise en vente après confirmation (on garde le plus petit #serial).
 // Seules adresses contactées : poseidon-scans.net, et api.github.com toutes les 6 h (version publiée sur le dépôt de Teddy).
 import { ORIGIN, answer, getSettings, gameStatus } from './lib/aquaman.js';
 import { setBadge, COLORS } from './lib/badge.js';
@@ -13,6 +14,8 @@ import * as alertes from './modules/alertes.js';
 import * as vente from './modules/vente.js';
 import * as completer from './modules/completer.js';
 import * as progression from './modules/progression.js';
+import * as doubles from './modules/doubles.js';
+import { applySite, setSite, siteEnabled } from './lib/site.js';
 
 const POLL_ALARM = 'aquaman-poll';
 const UPDATE_ALARM = 'aquaman-update-check';
@@ -139,12 +142,14 @@ async function rollbackUpdate() {
 // ---------- démarrage ----------
 
 function startAll() {
+  applySite().catch(() => {});
   schedule();
   pollBoosters();
   alertes.start();
   vente.start();
   completer.start();
   progression.start();
+  doubles.start();
 }
 
 chrome.runtime.onInstalled.addListener(async ({ reason, previousVersion }) => {
@@ -155,10 +160,12 @@ chrome.runtime.onInstalled.addListener(async ({ reason, previousVersion }) => {
 });
 chrome.runtime.onStartup.addListener(startAll);
 // Le service est relancé par Chrome sans événement (après une mise en veille) : les boucles reprennent ici.
+applySite().catch(() => {});
 alertes.start();
 vente.start();
 completer.start();
 progression.start();
+doubles.start();
 
 // ---------- messages ----------
 
@@ -168,10 +175,15 @@ async function handle(msg) {
   if (type.startsWith('vente:')) return vente.handleMessage(type.slice(6));
   if (type.startsWith('completer:')) return completer.handleMessage(type.slice(10), msg);
   if (type.startsWith('progression:')) return progression.handleMessage(type.slice(12));
+  if (type.startsWith('doubles:')) return doubles.handleMessage(type.slice(8), msg);
   switch (type) {
     case 'status':
       await onStatus(msg.pending ?? 0);
       return { ok: true };
+    case 'site-get':
+      return { enabled: await siteEnabled() };
+    case 'site-set':
+      return setSite(!!msg.enabled);
     case 'check-update':
       return (await lookForUpdate(!!msg.force)) ?? { ok: true };
     case 'updater-ping':
