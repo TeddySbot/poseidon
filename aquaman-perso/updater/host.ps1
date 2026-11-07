@@ -14,7 +14,7 @@ $ProgressPreference = 'SilentlyContinue'
 
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Repo = 'TeddySbot/poseidon'
-$ExpectedName = 'Aquaman (perso)'
+$ExpectedNames = @('Aquaman (perso)', 'Celestial')
 $KeepBackups = 3
 $stdin = [Console]::OpenStandardInput()
 $stdout = [Console]::OpenStandardOutput()
@@ -127,7 +127,7 @@ function Update-Extension($dir, $msg) {
       $files = Join-Path $tmp 'files'
       Expand-Archive -LiteralPath $zip -DestinationPath $files
       $m = Get-Manifest $files
-      if ([string]$m.name -ne $ExpectedName -or [string]$m.version -ne $v) { return @{ error = 'bad_package' } }
+      if ($ExpectedNames -notcontains [string]$m.name -or [string]$m.version -ne $v) { return @{ error = 'bad_package' } }
       $backup = New-Backup $dir
       $copy = Copy-Dir $files $dir ''
       if ($copy.code -ge 8) {
@@ -151,7 +151,7 @@ function Restore-Previous($dir) {
   $last = Get-ChildItem -LiteralPath $root -Directory -ErrorAction SilentlyContinue | Sort-Object CreationTime -Descending | Select-Object -First 1
   if (-not $last) { return @{ error = 'no_backup' } }
   $m = Get-Manifest $last.FullName
-  if ([string]$m.name -ne $ExpectedName) { return @{ error = 'bad_package' } }
+  if ($ExpectedNames -notcontains [string]$m.name) { return @{ error = 'bad_package' } }
   $r = Invoke-Quiet 'robocopy' "`"$($last.FullName)`" `"$dir`" /MIR /XD .git /R:2 /W:1 /NFL /NDL /NJH /NJS /NP"
   if ($r.code -ge 8) { return @{ error = 'copy_failed'; detail = $r.text } }
   Remove-Item -LiteralPath $last.FullName -Recurse -Force -ErrorAction SilentlyContinue

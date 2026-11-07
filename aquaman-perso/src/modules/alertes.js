@@ -192,7 +192,7 @@ function notifyAuth() {
   chrome.notifications.create('auth', {
     type: 'basic',
     iconUrl: ICON,
-    title: 'Aquaman : connexion nécessaire',
+    title: 'Celestial : connexion nécessaire',
     message: 'Connecte-toi sur poseidon-scans.net dans ce navigateur pour que les alertes marchent. Clique ici.',
     requireInteraction: true,
     priority: 1

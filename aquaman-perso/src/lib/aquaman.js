@@ -60,7 +60,7 @@ export const SETTINGS = [
     icon: '🔔',
     items: [
       ['notifyBoosters', 'Nouveaux boosters', 'Une notification quand des boosters t’attendent', 'extension'],
-      ['notifyUpdated', 'Nouveautés', 'Ce qui a changé, après une mise à jour d’Aquaman']
+      ['notifyUpdated', 'Nouveautés', 'Ce qui a changé, après une mise à jour de Celestial']
     ]
   },
   {
@@ -204,7 +204,7 @@ export function myId() {
       } catch {}
     }
     const id = ids.find((x) => typeof x === 'string' && x);
-    if (!id) throw new ApiError(401, 'unauthorized', 'Connecte-toi au site pour utiliser Aquaman.');
+    if (!id) throw new ApiError(401, 'unauthorized', 'Connecte-toi au site pour utiliser Celestial.');
     return id;
   });
 }
@@ -243,6 +243,15 @@ const myShowcase = async (ttl = 60e3) => {
   showcases.set(id, sc);
   return sc;
 };
+
+// The series whose album the logged-in player claimed (their badge): by id and by slug (repris de l'officiel 1.4.9).
+async function claimedAlbums(fresh = false) {
+  const sc = await myShowcase(fresh ? 0 : 60e3);
+  const series = (sc.albums ?? []).map((a) => a?.series).filter(Boolean);
+  // (la bande des séries montre chacune par sa couverture, /api/covers/<slug>.webp : son slug, et le nom de sa couverture)
+  const covers = series.map((s) => imageKey(s.cover)?.replace(/\.[a-z0-9]+$/i, '')).filter(Boolean);
+  return { ids: series.map((s) => s.id).filter(Boolean), slugs: [...new Set([...series.map((s) => s.slug).filter(Boolean), ...covers])] };
+}
 
 // File name of a card image: the same key as the address of the image shown by the site.
 export function imageKey(src) {
@@ -1830,6 +1839,8 @@ export async function answer(msg) {
         return await friends();
       case 'player':
         return await playerSummary(msg.id);
+      case 'claimed-albums':
+        return await claimedAlbums(!!msg.fresh);
       case 'boosters':
         return await boosterReport(msg.query, msg.rarity, msg.field);
       case 'access':

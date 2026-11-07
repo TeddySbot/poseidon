@@ -141,7 +141,7 @@ function renderChart(sales) {
     g += `<rect class="hit" data-i="${i}" x="${padL + bw * i}" y="${padT}" width="${bw}" height="${ih}" fill="transparent"/>`;
   });
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  svg.innerHTML = `<defs><linearGradient id="aqmBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#60a5fa"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs>` + g;
+  svg.innerHTML = `<defs><linearGradient id="aqmBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs>` + g;
   svg.querySelectorAll(".hit").forEach(el => {
     el.onmouseenter = () => {
       const x = days[+el.dataset.i], cx = padL + bw * +el.dataset.i + bw / 2;
