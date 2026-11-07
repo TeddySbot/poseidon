@@ -27,7 +27,7 @@ if ($Uninstall) {
 }
 
 $manifest = Get-Content -LiteralPath (Join-Path $ext 'manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-if ([string]$manifest.name -ne 'Aquaman (perso)') { throw "Ce script doit rester dans le dossier aquaman-perso\updater (trouve : $($manifest.name))." }
+if (@('Aquaman (perso)', 'Celestial') -notcontains [string]$manifest.name) { throw "Ce script doit rester dans le dossier aquaman-perso\updater (trouve : $($manifest.name))." }
 
 # Id d'une extension non empaquetee : SHA-256 du chemin du dossier (UTF-16, lettre de lecteur en majuscule), lettres a-p.
 function Get-PathId($path) {

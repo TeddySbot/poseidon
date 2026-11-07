@@ -9,13 +9,13 @@
 const TOUR = [
   {
     id: 'bienvenue',
-    title: 'Bienvenue dans Aquaman',
-    text: 'Aquaman ajoute quelques outils au jeu. Cette visite d’une minute te montre où les trouver ; tu peux la quitter à tout moment.'
+    title: 'Bienvenue dans Celestial',
+    text: 'Celestial ajoute quelques outils au jeu. Cette visite d’une minute te montre où les trouver ; tu peux la quitter à tout moment.'
   },
   {
     id: 'plus',
     title: 'L’onglet Plus',
-    text: 'Les pages d’Aquaman sont rangées ici, à droite de Marché.',
+    text: 'Les pages de Celestial sont rangées ici, à droite de Marché.',
     find: 'plus'
   },
   {
@@ -59,7 +59,7 @@ const TOUR = [
   {
     id: 'pity',
     title: 'La garantie anti-malchance',
-    text: 'Sous le minuteur du booster offert : combien de boosters il te reste avant la SSR et l’UR garanties. Aquaman compte chaque booster que tu ouvres, et partage ce compte entre tes appareils (PC, téléphone, extension ou script) : partout le même chiffre. Tant qu’il n’a pas vu sortir de SSR ou d’UR, il affiche « au plus ».',
+    text: 'Sous le minuteur du booster offert : combien de boosters il te reste avant la SSR et l’UR garanties. Celestial compte chaque booster que tu ouvres, et partage ce compte entre tes appareils (PC, téléphone, extension ou script) : partout le même chiffre. Tant qu’il n’a pas vu sortir de SSR ou d’UR, il affiche « au plus ».',
     page: '/jeu',
     target: '.aqm-pity'
   },
@@ -100,19 +100,26 @@ const TOUR = [
 // What's new in each version, the most recent first. An item is ['text'] or ['text', 'id of a tour step'].
 const CHANGES = [
   {
+    version: '2.0.0',
+    items: [
+      ['Aquaman perso s’appelle maintenant Celestial, avec un thème violet. Tes réglages, favoris, files d’attente et historique sont gardés.'],
+      ['Collection : le bouton « Masquer séries avec badge », à côté de « Masquer séries <= 5 persos », cache les séries dont tu as déjà réclamé l’album (repris de l’Aquaman officiel 1.4.9).']
+    ]
+  },
+  {
     version: '1.9.0',
     items: [
-      ['Nouvelle page « Mes doubles » (fenêtre d’Aquaman › Mes doubles, ou tuile Doubles de « Ma progression ») : tous tes exemplaires en trop, comptés carte par carte, sans la limite des 2000 exemplaires du jeu (la fenêtre « Recycler » du jeu n’en montre qu’une partie).'],
+      ['Nouvelle page « Mes doubles » (fenêtre de Celestial › Mes doubles, ou tuile Doubles de « Ma progression ») : tous tes exemplaires en trop, comptés carte par carte, sans la limite des 2000 exemplaires du jeu (la fenêtre « Recycler » du jeu n’en montre qu’une partie).'],
       ['Mise en vente des doubles en quelques clics : tu gardes toujours l’exemplaire au plus petit #serial, prix conseillé modifiable, confirmation obligatoire. Au-delà des 50 ordres en cours permis par le jeu, le reste attend dans une file retentée toutes les 2 min.'],
       ['Ma progression : tuile « Doubles » (exemplaires en trop et cartes en double).'],
-      ['Interrupteur « Aquaman sur le site » dans la fenêtre : coupe les fonctions sur le site sans arrêter la Vente auto, les Alertes et le reste.']
+      ['Interrupteur « Celestial sur le site » dans la fenêtre : coupe les fonctions sur le site sans arrêter la Vente auto, les Alertes et le reste.']
     ]
   },
   {
     version: '1.8.0',
     items: [
-      ['Aquaman perso reprend les nouveautés de l’Aquaman officiel 1.3.2 à 1.4.8 (détail ci-dessous) : filtres des échanges, enchères et « Qui a cette carte ? » sur la page d’une carte, « En vente » et « Masquer séries <= 5 persos » dans la Collection, historique des tirages par pack, « Ouvrir les 10 suivants », classement Global et Perles, Plus › Réglages.'],
-      ['Relais en lecture seule : Aquaman lit le classement Global, les Perles des autres, les détenteurs, les beaux tirages et les dessins des packs, mais n’envoie rien de chez toi (ni Perles, ni pseudo, ni tirages, ni listes). Réglage « Lire la base publique du relais » pour tout couper.'],
+      ['Celestial reprend les nouveautés de l’Aquaman officiel 1.3.2 à 1.4.8 (détail ci-dessous) : filtres des échanges, enchères et « Qui a cette carte ? » sur la page d’une carte, « En vente » et « Masquer séries <= 5 persos » dans la Collection, historique des tirages par pack, « Ouvrir les 10 suivants », classement Global et Perles, Plus › Réglages.'],
+      ['Relais en lecture seule : Celestial lit le classement Global, les Perles des autres, les détenteurs, les beaux tirages et les dessins des packs, mais n’envoie rien de chez toi (ni Perles, ni pseudo, ni tirages, ni listes). Réglage « Lire la base publique du relais » pour tout couper.'],
       ['L’auteur de l’Aquaman officiel ne peut pas couper cette version à distance.']
     ]
   },
@@ -120,13 +127,13 @@ const CHANGES = [
     version: '1.4.8',
     items: [
       ['Classement : « Global » compte aussi tes amis.'],
-      ['iPhone et iPad : « Installer » dans le cadre d’une nouvelle version affiche les étapes pour mettre Aquaman à jour avec Userscripts.'],
+      ['iPhone et iPad : « Installer » dans le cadre d’une nouvelle version affiche les étapes pour mettre Celestial à jour avec Userscripts.'],
       ['Garantie anti-malchance : un booster signalé deux fois n’est plus compté deux fois (un écart de 61 boosters pouvait apparaître pour une garantie de 60).']
     ]
   },
   {
     version: '1.4.7',
-    items: [['Historique des tirages : le pack d’où vient chaque SSR, UR et SEC, sous sa carte, et un filtre par pack. Pour les cartes tirées avant cette version, le pack est déduit de la carte : Halloween pour une carte Halloween, Classique pour les autres.'], ['Boosters rentables : en cherchant un personnage, chaque suggestion montre son image et ses raretés.'], ['Accueil : après un « Tout ouvrir », un bouton « Ouvrir les 10 suivants » à côté de « Fermer » ouvre les boosters suivants du même pack, 10 par 10 (le jeu n’en ouvre pas plus d’un coup). La fenêtre des cartes se ferme toute seule 5 s après la dernière, sur les 10 suivantes s’il en reste : un clic dans la fenêtre l’arrête.'], ['Proposer un échange : à côté de « Doublons », les filtres « Mes recherches » et « Il me manque » dans « Tu demandes », et « Il lui manque » dans « Tu donnes » (avec « Doublons » : tes doublons qu’il n’a pas).'], ['Classement : « Global » à côté de « Amis » (les joueurs vus récemment dans les Beaux tirages et les utilisateurs d’Aquaman, pas la liste complète du jeu), et un onglet « Perles » : le stock de Perles des utilisateurs d’Aquaman qui le partagent (réglage « Mes Perles au classement »).']]
+    items: [['Historique des tirages : le pack d’où vient chaque SSR, UR et SEC, sous sa carte, et un filtre par pack. Pour les cartes tirées avant cette version, le pack est déduit de la carte : Halloween pour une carte Halloween, Classique pour les autres.'], ['Boosters rentables : en cherchant un personnage, chaque suggestion montre son image et ses raretés.'], ['Accueil : après un « Tout ouvrir », un bouton « Ouvrir les 10 suivants » à côté de « Fermer » ouvre les boosters suivants du même pack, 10 par 10 (le jeu n’en ouvre pas plus d’un coup). La fenêtre des cartes se ferme toute seule 5 s après la dernière, sur les 10 suivantes s’il en reste : un clic dans la fenêtre l’arrête.'], ['Proposer un échange : à côté de « Doublons », les filtres « Mes recherches » et « Il me manque » dans « Tu demandes », et « Il lui manque » dans « Tu donnes » (avec « Doublons » : tes doublons qu’il n’a pas).'], ['Classement : « Global » à côté de « Amis » (les joueurs vus récemment dans les Beaux tirages et les utilisateurs de Celestial, pas la liste complète du jeu), et un onglet « Perles » : le stock de Perles des utilisateurs de Celestial qui le partagent (réglage « Mes Perles au classement »).']]
   },
   {
     version: '1.4.6',
@@ -162,7 +169,7 @@ const CHANGES = [
   {
     version: '1.4.1',
     items: [
-      ['Réglages : Plus › Réglages permet d’activer ou de couper chaque fonction d’Aquaman (boosters par catégorie, lueur, garantie, « Manquantes », « En vente », échanges…). La même liste sur PC et téléphone, dans l’extension comme dans le script, et dans la fenêtre de l’extension.'],
+      ['Réglages : Plus › Réglages permet d’activer ou de couper chaque fonction de Celestial (boosters par catégorie, lueur, garantie, « Manquantes », « En vente », échanges…). La même liste sur PC et téléphone, dans l’extension comme dans le script, et dans la fenêtre de l’extension.'],
       ['Collection : changer de série ne fait plus sauter la page ; la file d’attente des recherches reste en bas de l’écran et dans Séries favorites.'],
       ['Correction : en ouvrant des boosters à thème (Action, Magie…), le pack de l’animation d’ouverture a bien l’image de sa catégorie, et non celle du booster classique.']
     ]
@@ -183,9 +190,9 @@ const CHANGES = [
       ['Accueil : « N à ouvrir » compte les boosters de la catégorie affichée, et son nom n’est plus écrit au-dessus du pack (il est déjà dessus).'],
       ['Accueil : le booster du dessus bouge comme dans le jeu (il flotte et se tourne vers la souris), et sa lueur n’est plus coupée.'],
       ['Correction : la page Collection ne devient plus blanche quand on clique sur « Manquantes » dans une série.'],
-      ['Échanges : la page ne gèle plus et ne plante plus quand Aquaman marque les cartes que tu as déjà.'],
+      ['Échanges : la page ne gèle plus et ne plante plus quand Celestial marque les cartes que tu as déjà.'],
       ['Téléphone : les boosters de l’accueil gardent leur forme (ils étaient écrasés) et ne glissent plus les uns derrière les autres quand on fait défiler la page ; les boutons « Ouvrir » et « Tout ouvrir » sont l’un sous l’autre, comme dans le jeu.'],
-      ['Plus fluide : Aquaman travaille quand le navigateur est libre, se met en pause quand l’onglet est caché, et le marché comme la collection lui demandent moins de travail.']
+      ['Plus fluide : Celestial travaille quand le navigateur est libre, se met en pause quand l’onglet est caché, et le marché comme la collection lui demandent moins de travail.']
     ]
   },
   {
@@ -199,7 +206,7 @@ const CHANGES = [
   {
     version: '1.3.0',
     items: [
-      ['Vendre mes doublons (fenêtre du jeu) : quand le marché est plein, le doublon refusé et ceux encore cochés après lui attendent dans Aquaman (50 au plus), sans recliquer, et sont mis en vente tout seuls, au prix choisi, dès qu’une de tes ventes se conclut. La file s’affiche dans la fenêtre, avec « Vider la file » et « Réessayer maintenant ».'],
+      ['Vendre mes doublons (fenêtre du jeu) : quand le marché est plein, le doublon refusé et ceux encore cochés après lui attendent dans Celestial (50 au plus), sans recliquer, et sont mis en vente tout seuls, au prix choisi, dès qu’une de tes ventes se conclut. La file s’affiche dans la fenêtre, avec « Vider la file » et « Réessayer maintenant ».'],
       ['Recycler des cartes (fenêtre du jeu) : aucune carte n’est cochée à l’ouverture, et un bouton « Tout sélectionner » coche toute la liste.'],
       ['Accueil : sous les garanties SSR et UR, le nombre de boosters depuis ta dernière SEC, sa fréquence moyenne et ta chance d’en avoir une dans les 100 prochains (la SEC n’a pas de garantie).', 'pity'],
       ['Accueil : quand tes boosters sont de plusieurs catégories, les boosters gratuits s’affichent d’abord, et des flèches passent aux autres catégories (3 visibles à la fois : celle du centre et une de chaque côté), chacune avec son rendu, l’image de son pack et ses boutons « Ouvrir » et « Tout ouvrir », qui n’ouvrent que ceux-là, avec l’animation du jeu. Leur dessin est gardé et partagé entre tes appareils, pour s’afficher tout de suite.'],
@@ -211,14 +218,14 @@ const CHANGES = [
       ['Collection : un onglet « Manquantes » à côté de « Album complet », qui ne montre que les cartes qui te manquent.'],
       ['Page d’une carte : sous la cote, les 5 offres les moins chères du marché, de la moins chère à la plus chère, avec le vendeur, le numéro et un bouton « Acheter ».'],
       ['Qui a cette carte ? : la photo de profil de chaque joueur à côté de son nom.', 'qui'],
-      ['Correction : la page Collection ne devient plus blanche quand on clique trop tôt sur « Manquantes » (Aquaman attend que le jeu ait fini de charger la page).']
+      ['Correction : la page Collection ne devient plus blanche quand on clique trop tôt sur « Manquantes » (Celestial attend que le jeu ait fini de charger la page).']
     ]
   },
   {
     version: '1.2.0',
     items: [
-      ['Ma vitrine : la fenêtre reste fluide même avec des centaines de cartes (seules celles proches de l’écran sont dessinées, et Aquaman ne fouille plus toute la fenêtre à chaque changement).', 'vitrine'],
-      ['Qui a cette carte ? : quand quelqu’un fait un beau tirage (SSR, UR ou SEC), Aquaman lit sa collection publique et garde ses SSR, UR et SEC dans la base commune ; « Vus avec cette carte » liste ces joueurs.', 'qui'],
+      ['Ma vitrine : la fenêtre reste fluide même avec des centaines de cartes (seules celles proches de l’écran sont dessinées, et Celestial ne fouille plus toute la fenêtre à chaque changement).', 'vitrine'],
+      ['Qui a cette carte ? : quand quelqu’un fait un beau tirage (SSR, UR ou SEC), Celestial lit sa collection publique et garde ses SSR, UR et SEC dans la base commune ; « Vus avec cette carte » liste ces joueurs.', 'qui'],
       ['Les cartes en attente de recherche (au-delà des 100 du jeu) sont les mêmes sur tous tes appareils.', 'favoris'],
       ['Script : une nouvelle version est cherchée toutes les 10 minutes et proposée en haut de l’écran (« Installer »). L’extension la cherche aussi toutes les 10 minutes.']
     ]
@@ -230,7 +237,7 @@ const CHANGES = [
       ['Base commune des beaux tirages : chaque Aquaman relève les SSR, UR et SEC qui sortent chaque minute et les partage ; « Qui a cette carte ? » s’en sert pour dire qui a tiré une carte et combien de fois.', 'qui'],
       ['Collection : dans le cadre « Album de la série », « Ajouter aux favoris » et « Rechercher les manquantes » pour la série affichée.', 'etoiles'],
       ['Rechercher les manquantes : les cartes s’ajoutent au rythme que le jeu accepte, et l’ajout continue pendant que tu changes de page ou ouvres des boosters, avec sa progression en bas de l’écran.'],
-      ['Jusqu’à 200 cartes recherchées de plus : quand la liste du jeu (100 cartes) est pleine, les suivantes attendent dans Aquaman et y entrent au fur et à mesure que tu obtiens les cartes recherchées (Aquaman retire de la liste celles qu’il y avait mises, une fois obtenues). L’ajout se fait en arrière-plan ; sa progression est dans Séries favorites.', 'favoris']
+      ['Jusqu’à 200 cartes recherchées de plus : quand la liste du jeu (100 cartes) est pleine, les suivantes attendent dans Celestial et y entrent au fur et à mesure que tu obtiens les cartes recherchées (Celestial retire de la liste celles qu’il y avait mises, une fois obtenues). L’ajout se fait en arrière-plan ; sa progression est dans Séries favorites.', 'favoris']
     ]
   },
   {

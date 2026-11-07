@@ -18,4 +18,4 @@ export function setBadge(source, value) {
   if (pick?.color) chrome.action.setBadgeBackgroundColor({ color: pick.color });
 }
 
-export const COLORS = { alert: '#ea580c', error: '#dc2626', boosters: '#2563eb', sim: '#a16207', real: '#16a34a', grey: '#71717a' };
+export const COLORS = { alert: '#ea580c', error: '#dc2626', boosters: '#7c3aed', sim: '#a16207', real: '#16a34a', grey: '#71717a' };

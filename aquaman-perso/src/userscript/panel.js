@@ -24,9 +24,9 @@
     };
     const back = el('div', { class: 'aqm-root aqm-overlay aqm-settings' });
     back.innerHTML = `
-      <div class="aqm-panel" role="dialog" aria-modal="true" aria-label="Réglages d’Aquaman">
+      <div class="aqm-panel" role="dialog" aria-modal="true" aria-label="Réglages de Celestial">
         <div class="aqm-head">
-          <div><h2 class="aqm-title">Réglages</h2><p class="aqm-sub">Aquaman perso · script ${VERSION}</p></div>
+          <div><h2 class="aqm-title">Réglages</h2><p class="aqm-sub">Celestial · script ${VERSION}</p></div>
           <button type="button" class="aqm-close" aria-label="Fermer">✕</button>
         </div>
         <div class="aqm-body">

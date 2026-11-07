@@ -93,7 +93,7 @@ async function lookForUpdate(force = false) {
   const { updateNotified } = await chrome.storage.local.get('updateNotified');
   if (updateNotified !== res.update.version) {
     await chrome.storage.local.set({ updateNotified: res.update.version });
-    notify('update', { title: `Aquaman perso ${res.update.version} est disponible`, message: 'Fais « git pull » dans ton dossier, ou télécharge le zip. Clique pour ouvrir la page.', href: RELEASES_URL });
+    notify('update', { title: `Celestial ${res.update.version} est disponible`, message: 'Fais « git pull » dans ton dossier, ou télécharge le zip. Clique pour ouvrir la page.', href: RELEASES_URL });
   }
   return res;
 }
@@ -101,7 +101,7 @@ async function lookForUpdate(force = false) {
 async function announceUpdate(previousVersion) {
   const version = chrome.runtime.getManifest().version;
   if (!previousVersion || previousVersion === version || !(await getSettings()).notifyUpdated) return;
-  notify('updated', { title: `Aquaman perso est passé en ${version}`, message: 'Clique pour voir les nouveautés de cette version.', href: '/jeu#aqm-nouveautes' });
+  notify('updated', { title: `Celestial est passé en ${version}`, message: 'Clique pour voir les nouveautés de cette version.', href: '/jeu#aqm-nouveautes' });
 }
 
 // ---------- mise à jour en un clic ----------

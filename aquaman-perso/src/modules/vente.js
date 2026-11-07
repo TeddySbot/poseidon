@@ -666,7 +666,7 @@ function ensureLoop(now = false) {
 }
 
 function notify(title, message) {
-  chrome.notifications.create("vente-auth", { type: "basic", iconUrl: chrome.runtime.getURL("icons/icon128.png"), title: title.replace("Poseidon Vente", "Aquaman · Vente auto"), message, priority: 1 });
+  chrome.notifications.create("vente-auth", { type: "basic", iconUrl: chrome.runtime.getURL("icons/icon128.png"), title: title.replace("Poseidon Vente", "Celestial · Vente auto"), message, priority: 1 });
 }
 
 export function start() { chrome.alarms.create(ALARM, { periodInMinutes: 0.5 }); ensureLoop(); }

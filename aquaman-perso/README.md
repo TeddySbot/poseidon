@@ -1,4 +1,4 @@
-# Aquaman (perso) — v1.9.0
+# Celestial (ex-Aquaman perso) — v2.0.0
 
 Guide d'installation complet : voir le [README du dépôt](../README.md).
 
@@ -23,6 +23,16 @@ Guide d'installation complet : voir le [README du dépôt](../README.md).
 - **Relevé des beaux tirages chaque minute** en arrière-plan, et lecture automatique des collections des autres joueurs.
 - Permission `browsingData`.
 - Réglages de partage : forcés à « non » dans le code.
+
+## Nouveau en 2.0.0 : Celestial
+
+- **Nouveau nom** : « Celestial » partout dans l'interface (site, fenêtre, titre du bouton, notifications, pages).
+  Le nom interne du manifeste reste « Aquaman (perso) » : l'assistant « Mettre à jour » déjà installé chez chacun
+  refuse un paquet d'un autre nom. Depuis la 2.0.0, l'assistant accepte aussi « Celestial » : le nom interne pourra
+  changer dans une version suivante, une fois tout le monde passé en 2.0.0. Le script téléphone garde `@name Aquaman perso`
+  (Tampermonkey s'en sert pour reconnaître le script). Les clés de stockage (`aqm-…`) et les fichiers ne changent pas.
+- **Thème violet** : l'accent bleu devient violet (`#a78bfa`, boutons `#7c3aed`). Les cartes Rare restent bleues.
+- **Masquer séries avec badge** (Collection) : repris de l'Aquaman officiel 1.4.9 (`claimed-albums`, lu dans ma vitrine).
 
 ## Nouveau en 1.9.0 : Mes doubles
 

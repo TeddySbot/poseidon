@@ -58,7 +58,7 @@ async function bindSettings() {
 async function bindSite() {
   const box = $('#siteToggle');
   const info = $('#siteInfo');
-  const say = (on) => (info.textContent = on ? 'Activé : panneaux et outils d’Aquaman affichés sur le jeu.' : 'Coupé : le site s’affiche normalement. Vente auto et Alertes continuent.');
+  const say = (on) => (info.textContent = on ? 'Activé : panneaux et outils de Celestial affichés sur le jeu.' : 'Coupé : le site s’affiche normalement. Vente auto et Alertes continuent.');
   const r = await chrome.runtime.sendMessage({ type: 'site-get' }).catch(() => null);
   box.checked = r?.enabled !== false;
   say(box.checked);

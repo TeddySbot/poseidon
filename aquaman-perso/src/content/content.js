@@ -80,8 +80,8 @@
   // Answer of a data message, or an error with a message for the player.
   async function ask(msg) {
     const res = await send(msg);
-    if (!res) throw new Error('Aquaman ne répond pas : recharge la page.');
-    if (res.error) throw new Error(res.error === 'unknown_message' ? 'Aquaman ne répond pas : recharge la page.' : res.error);
+    if (!res) throw new Error('Celestial ne répond pas : recharge la page.');
+    if (res.error) throw new Error(res.error === 'unknown_message' ? 'Celestial ne répond pas : recharge la page.' : res.error);
     return res;
   }
 
@@ -220,12 +220,12 @@
 
   const nCards = (n) => `${n} carte${n > 1 ? 's' : ''}`;
   // Cards that didn't fit in the waiting ones.
-  const overNote = (over) => (over ? ` ${nCards(over)} de trop : Aquaman en garde ${WAIT_MAX} en attente au plus.` : '');
+  const overNote = (over) => (over ? ` ${nCards(over)} de trop : Celestial en garde ${WAIT_MAX} en attente au plus.` : '');
 
   // What became of the cards given to enqueueWants (r: its answer).
   function wantsNote(r, free) {
     if (r.sent == null)
-      return `Ta liste du jeu est pleine : ${nCards(r.parked)} de plus en attente dans Aquaman, ajoutée${r.parked > 1 ? 's' : ''} au fur et à mesure que tu obtiens les cartes recherchées.` + overNote(r.over);
+      return `Ta liste du jeu est pleine : ${nCards(r.parked)} de plus en attente dans Celestial, ajoutée${r.parked > 1 ? 's' : ''} au fur et à mesure que tu obtiens les cartes recherchées.` + overNote(r.over);
     return `${nCards(r.sent)} en cours d’ajout : ${free}, la progression reste affichée (en haut de Séries favorites et en bas de l’écran).`;
   }
 
@@ -354,7 +354,7 @@
         parts.push(
           h('div', { class: 'aqm-queue-head' }, h('strong', {}, `🔭 Ajout à ta liste du jeu · ${q.done}/${q.total}`)),
           h('span', { class: 'aqm-bar' }, h('span', { style: `width:${q.total ? ((100 * q.done) / q.total).toFixed(1) : 0}%` })),
-          h('p', {}, `Les cartes entrent une à une dans ta liste de recherches du jeu (${limit} cartes au plus) ; au-delà, elles passent dans la file d’attente d’Aquaman.${slow}`)
+          h('p', {}, `Les cartes entrent une à une dans ta liste de recherches du jeu (${limit} cartes au plus) ; au-delà, elles passent dans la file d’attente de Celestial.${slow}`)
         );
 
       // The waiting cards.
@@ -366,18 +366,18 @@
         const next = Math.max(0, Math.ceil((at + CHECK_EVERY - Date.now()) / 60e3));
         parts.push(
           h('div', { class: 'aqm-queue-head' },
-            h('strong', {}, `⏳ File d’attente d’Aquaman · ${entered}/${total}`),
+            h('strong', {}, `⏳ File d’attente de Celestial · ${entered}/${total}`),
             h('button', {
               type: 'button',
               class: 'aqm-queue-btn',
               onclick: async () => {
-                if (!confirm(`Retirer les ${nCards(waiting.length)} de la file d’attente d’Aquaman ? Celles déjà dans ta liste du jeu y restent.`)) return;
+                if (!confirm(`Retirer les ${nCards(waiting.length)} de la file d’attente de Celestial ? Celles déjà dans ta liste du jeu y restent.`)) return;
                 await chrome.storage.local.remove([WAITING, ENTERED]);
                 await send({ type: 'wants-changed' });
                 changed?.();
               }
             }, 'Vider la file')),
-          h('p', {}, `Ta liste de recherches du jeu est pleine (${limit} cartes). Aquaman garde les suivantes (${WAIT_MAX} au plus) et les y ajoute tout seul dès qu’une place se libère : quand tu obtiens une carte que tu recherches.`),
+          h('p', {}, `Ta liste de recherches du jeu est pleine (${limit} cartes). Celestial garde les suivantes (${WAIT_MAX} au plus) et les y ajoute tout seul dès qu’une place se libère : quand tu obtiens une carte que tu recherches.`),
           h('span', { class: 'aqm-steps' },
             h('span', { class: 'is-in', style: `width:${pc(entered)}` }),
             h('span', { class: 'is-sending', style: `width:${pc(sending)}` }),
@@ -432,7 +432,7 @@
       title = '🔭 Ta liste du jeu est pleine';
       lines = [
         `✅ ${added}.`,
-        `⏳ ${nCards(q.parked)} mise${q.parked > 1 ? 's' : ''} dans la file d’attente d’Aquaman : ${q.parked > 1 ? 'elles seront ajoutées' : 'elle sera ajoutée'} toute${q.parked > 1 ? 's' : ''} seule${q.parked > 1 ? 's' : ''} dès qu’une place se libère, quand tu obtiens une carte que tu recherches.`,
+        `⏳ ${nCards(q.parked)} mise${q.parked > 1 ? 's' : ''} dans la file d’attente de Celestial : ${q.parked > 1 ? 'elles seront ajoutées' : 'elle sera ajoutée'} toute${q.parked > 1 ? 's' : ''} seule${q.parked > 1 ? 's' : ''} dès qu’une place se libère, quand tu obtiens une carte que tu recherches.`,
         q.over ? `⛔ ${nCards(q.over)} non gardée${q.over > 1 ? 's' : ''} : la file d’attente est pleine (${WAIT_MAX} cartes).` : null,
         'Suis la file dans Plus › Séries favorites.'
       ];
@@ -602,7 +602,7 @@
     const running = q.items.length > 0;
     const waiting = (await readList(SALES_WAITING)).length;
     const lines = [
-      `✅ ${nCopies(q.done)} de la file d’attente d’Aquaman mis en vente.`,
+      `✅ ${nCopies(q.done)} de la file d’attente de Celestial mis en vente.`,
       running
         ? q.until > Date.now()
           ? `Le jeu demande de ralentir : reprise dans ${Math.ceil((q.until - Date.now()) / 1000)} s.`
@@ -783,7 +783,7 @@
     }
     if (!listings.length) return void askDialog('Retirer mes ventes', 'Tu n’as aucune vente à prix fixe en cours.');
     const waiting = (await readList(SALES_WAITING)).length + ((await readSales())?.items.length ?? 0);
-    const also = waiting ? `\n\nLa file d’attente d’Aquaman (${nCopies(waiting)}) est mise en pause le temps du retrait, puis réactivée.` : '';
+    const also = waiting ? `\n\nLa file d’attente de Celestial (${nCopies(waiting)}) est mise en pause le temps du retrait, puis réactivée.` : '';
     if (!(await askDialog('Retirer mes ventes', `Retirer tes ${sales(listings.length)} à prix fixe ? Les cartes redeviennent libres.${also}`, 'Retirer', 'Annuler'))) return;
     unlisting = true;
     const label = btn.textContent;
@@ -838,25 +838,25 @@
       const { [SALES]: q = null, [SALES_WAITING]: waiting = [], [SALES_AT]: at = 0, [SALES_LAST]: last = null } = await chrome.storage.local.get([SALES, SALES_WAITING, SALES_AT, SALES_LAST]);
       const sending = q?.items.length ?? 0;
       if (!waiting.length && !sending) {
-        panel.replaceChildren(h('p', {}, `🔱 Aquaman : si le marché est plein, jusqu’à ${SALES_MAX} doublons de plus attendent dans Aquaman et sont mis en vente tout seuls, au prix choisi, dès qu’une de tes ventes se conclut.`));
+        panel.replaceChildren(h('p', {}, `✨ Celestial : si le marché est plein, jusqu’à ${SALES_MAX} doublons de plus attendent dans Celestial et sont mis en vente tout seuls, au prix choisi, dès qu’une de tes ventes se conclut.`));
         return;
       }
       const ago = Math.round((Date.now() - at) / 60e3);
       const next = Math.max(0, Math.ceil((at + CHECK_EVERY - Date.now()) / 60e3));
       panel.replaceChildren(
         h('div', { class: 'aqm-queue-head' },
-          h('strong', {}, `⏳ File d’attente d’Aquaman · ${waiting.length}/${SALES_MAX}`),
+          h('strong', {}, `⏳ File d’attente de Celestial · ${waiting.length}/${SALES_MAX}`),
           waiting.length
             ? h('button', {
                 type: 'button',
                 class: 'aqm-queue-btn',
                 onclick: async () => {
-                  if (!confirm(`Retirer les ${nCopies(waiting.length)} de la file d’attente d’Aquaman ? Ceux déjà en vente y restent.`)) return;
+                  if (!confirm(`Retirer les ${nCopies(waiting.length)} de la file d’attente de Celestial ? Ceux déjà en vente y restent.`)) return;
                   await saveSalesWaiting({ [SALES_WAITING]: [] });
                 }
               }, 'Vider la file')
             : null),
-        h('p', {}, `Le marché est plein : Aquaman garde le doublon refusé et ceux encore cochés après lui (${SALES_MAX} au plus) et les met en vente tout seul, au prix choisi, dès qu’une de tes ventes se conclut. Il vérifie en arrière-plan tant qu’une page du site est ouverte, même dans un autre onglet.`),
+        h('p', {}, `Le marché est plein : Celestial garde le doublon refusé et ceux encore cochés après lui (${SALES_MAX} au plus) et les met en vente tout seul, au prix choisi, dès qu’une de tes ventes se conclut. Il vérifie en arrière-plan tant qu’une page du site est ouverte, même dans un autre onglet.`),
         waiting.length ? h('ul', { class: 'aqm-sell-waiting' }, waiting.map((x) => h('li', {}, h('span', {}, x.name), perles(x.price)))) : null,
         // What the game said at the last try: its own words, to see why the copies wait.
         last?.message
@@ -1119,9 +1119,9 @@
       item('Boosters rentables', 'Prix, taux de drop, persos et séries', ICON_PACK, openBoosters),
       item('Qui a cette carte ?', 'Ceux qui l’ont, la vendent ou l’ont tirée', ICON_SEARCH, openWhoHas),
       item('Séries favorites', 'Tes séries et leurs persos manquants', ICON_STAR, openFavorites),
-      item('Visite guidée', 'Le tour de ce qu’ajoute Aquaman', ICON_COMPASS, () => startTour(0)),
-      item('Nouveautés', 'Ce qui a changé dans Aquaman', ICON_SPARK, () => openNews()),
-      item('Réglages', 'Activer ou couper chaque fonction d’Aquaman', ICON_GEAR, openSettings),
+      item('Visite guidée', 'Le tour de ce qu’ajoute Celestial', ICON_COMPASS, () => startTour(0)),
+      item('Nouveautés', 'Ce qui a changé dans Celestial', ICON_SPARK, () => openNews()),
+      item('Réglages', 'Activer ou couper chaque fonction de Celestial', ICON_GEAR, openSettings),
       meId === AUTHOR_ID ? item('Joueurs avec Aquaman', 'Réservé à l’auteur', ICON_TROPHY, openUsers) : null,
       meId === AUTHOR_ID ? item('Scanner les packs', 'Publier le design de chaque booster', ICON_PACK, startScan) : null
     );
@@ -1138,7 +1138,7 @@
   // A feature turned on or off applies once the window is closed: the page is loaded again.
   let settingsOpen = false;
   async function openSettings() {
-    const body = openOverlay('Réglages', `Aquaman ${chrome.runtime.getManifest().version} · ${owner === 'userscript' ? 'script' : 'extension'} · les mêmes réglages sur PC et téléphone`);
+    const body = openOverlay('Réglages', `Celestial ${chrome.runtime.getManifest().version} · ${owner === 'userscript' ? 'script' : 'extension'} · les mêmes réglages sur PC et téléphone`);
     body.parentElement.classList.add('aqm-panel-wide');
     let r;
     try {
@@ -1373,7 +1373,7 @@
           } else {
             const { me, players } = await ask({ type: 'global-players' });
             s.rows = [{ id: me, me: true }, ...players].map((p) => ({ ...p, state: 'idle' }));
-            s.note = `${fmt(players.length + 1)} joueurs · ce n’est pas la liste complète du jeu : seulement tes amis, les joueurs vus récemment dans les « Beaux tirages » et ceux qui partagent leurs Perles avec Aquaman.`;
+            s.note = `${fmt(players.length + 1)} joueurs · ce n’est pas la liste complète du jeu : seulement tes amis, les joueurs vus récemment dans les « Beaux tirages » et ceux qui partagent leurs Perles avec Celestial.`;
           }
         } catch (e) {
           s.note = e.message;
@@ -2016,7 +2016,7 @@
                 'p',
                 { class: 'aqm-note' },
                 c.owners
-                  ? `${fmt(c.owners)} joueur${c.owners > 1 ? 's l’ont' : ' l’a'}, mais le jeu ne publie la liste des détenteurs que pour les cartes à tirage limité. Voici ceux qu’Aquaman peut voir.`
+                  ? `${fmt(c.owners)} joueur${c.owners > 1 ? 's l’ont' : ' l’a'}, mais le jeu ne publie la liste des détenteurs que pour les cartes à tirage limité. Voici ceux que Celestial peut voir.`
                   : 'Personne n’a encore cette carte.'
               )
             ]),
@@ -2036,8 +2036,8 @@
               `Vus avec cette carte${r.seen?.length ? ` · ${fmt(r.seen.length)}` : ''}`,
               (r.seen ?? []).map((x) => playerRow(x.serials[0] ?? null, x.player, h('small', { title: `Collection lue le ${new Date(x.seenAt).toLocaleString('fr-FR')}` }, `${x.count > 1 ? `×${x.count} · ` : ''}${timeAgo(x.seenAt)}`), c)),
               r.scanned
-                ? `Aucun des ${fmt(r.scanned)} joueurs dont Aquaman a lu la collection ne l’a.`
-                : 'Aquaman lit la collection des joueurs qui font un beau tirage : ils apparaîtront ici au fil du temps.'
+                ? `Aucun des ${fmt(r.scanned)} joueurs dont Celestial a lu la collection ne l’a.`
+                : 'Celestial lit la collection des joueurs qui font un beau tirage : ils apparaîtront ici au fil du temps.'
             )),
         ...section(
           r.pulls.length
@@ -2080,9 +2080,9 @@
         go.hidden = true;
         note.textContent = players.length
           ? `${players.length} joueur${players.length > 1 ? 's' : ''} vu${players.length > 1 ? 's' : ''} récemment regardé${players.length > 1 ? 's' : ''} : ${found} l’${found > 1 ? 'ont' : 'a'}${hidden ? ` (${hidden} collection${hidden > 1 ? 's' : ''} privée${hidden > 1 ? 's' : ''} ou illisible${hidden > 1 ? 's' : ''})` : ''}.`
-          : 'Aquaman n’a pas encore vu d’autres joueurs : il les découvre dans les beaux tirages, au fil du temps.';
+          : 'Celestial n’a pas encore vu d’autres joueurs : il les découvre dans les beaux tirages, au fil du temps.';
       });
-      return [h('p', { class: 'aqm-label aqm-who-gap' }, 'Chercher plus loin'), h('p', { class: 'aqm-muted' }, 'Aquaman peut regarder la collection publique des joueurs vus dans les beaux tirages relevés par tous les joueurs qui l’ont.'), go, note, list];
+      return [h('p', { class: 'aqm-label aqm-who-gap' }, 'Chercher plus loin'), h('p', { class: 'aqm-muted' }, 'Celestial peut regarder la collection publique des joueurs vus dans les beaux tirages relevés par tous les joueurs qui l’ont.'), go, note, list];
     }
 
     search.addEventListener('input', () => {
@@ -2307,7 +2307,7 @@
         const btn = h('button', { type: 'button', class: 'aqm-album-btn aqm-user-revoke' }, u.revoked ? 'Rétablir' : 'Révoquer');
         btn.addEventListener('click', async () => {
           const name = u.name || u.id;
-          if (!u.revoked && !confirm(`Révoquer Aquaman pour ${name} ? Il s’arrêtera chez ce joueur dans la minute, jusqu’à ce que tu le rétablisses.`)) return;
+          if (!u.revoked && !confirm(`Révoquer Celestial pour ${name} ? Il s’arrêtera chez ce joueur dans la minute, jusqu’à ce que tu le rétablisses.`)) return;
           btn.disabled = true;
           const res = await ask({ type: 'admin-revoke-player', id: u.id, revoked: !u.revoked }).catch((e) => ({ error: e.message }));
           if (res?.needDevice) return load();
@@ -2422,9 +2422,22 @@
               strip.scrollTo?.({ left: 0, behavior: 'smooth' });
             },
             title: `Masquer les séries de ${SMALL_SERIES} personnages ou moins`
-          }, `Masquer séries <= ${SMALL_SERIES} persos`)
+          }, `Masquer séries <= ${SMALL_SERIES} persos`),
+          h('button', {
+            type: 'button',
+            class: 'aqm-chip aqm-sort-progress aqm-claimed-series',
+            'aria-pressed': 'false',
+            onclick: () => {
+              setClaimedHidden(!claimedHidden);
+              if (claimedHidden) loadClaimed(true);
+              sortByProgress(strip);
+              strip.scrollTo?.({ left: 0, behavior: 'smooth' });
+            },
+            title: 'Masquer les séries dont tu as déjà le badge (album réclamé)'
+          }, 'Masquer séries avec badge')
         )
       );
+    if (claimedHidden && Date.now() - claimedAt > 2 * 60e3) loadClaimed();
     sortByProgress(strip);
     keepStripPlace(strip);
     if (!seriesBySlug) return;
@@ -2488,6 +2501,41 @@
       on ? sessionStorage.setItem(SMALL_ONLY_KEY, '1') : sessionStorage.removeItem(SMALL_ONLY_KEY);
     } catch {}
   }
+  // "Masquer séries avec badge" (repris de l'Aquaman officiel 1.4.9) : les séries dont l'album est réclamé sont
+  // cachées (gardé pour l'onglet). Leurs slugs viennent de ma vitrine (ses albums), comparés à la couverture de
+  // chaque série de la bande.
+  const CLAIMED_KEY = 'aqm-hide-claimed';
+  let claimedHidden = (() => {
+    try {
+      return sessionStorage.getItem(CLAIMED_KEY) === '1';
+    } catch {
+      return false;
+    }
+  })();
+  function setClaimedHidden(on) {
+    claimedHidden = on;
+    try {
+      on ? sessionStorage.setItem(CLAIMED_KEY, '1') : sessionStorage.removeItem(CLAIMED_KEY);
+    } catch {}
+  }
+  let claimedSlugs = null; // slugs des séries avec badge, une fois lus
+  let claimedAt = 0;
+  async function loadClaimed(fresh = false) {
+    claimedAt = Date.now();
+    const res = await send({ type: 'claimed-albums', fresh });
+    if (!res || res.error || !Array.isArray(res.slugs)) return;
+    claimedSlugs = new Set(res.slugs);
+    const strip = seriesStrip();
+    if (strip) sortByProgress(strip);
+  }
+  const claimedCoverSlug = (el) => {
+    const src = el.querySelector('img[src*="/api/covers/"]')?.getAttribute('src');
+    try {
+      return src ? decodeURIComponent(src.match(/\/api\/covers\/([^/?#]+)\.webp/)?.[1] ?? '') : '';
+    } catch {
+      return '';
+    }
+  };
   function setByProgress(on) {
     byProgress = on;
     try {
@@ -2586,15 +2634,21 @@
         sessionStorage.setItem('aqm-missing-seen', seen);
       } catch {}
     }
-    const chip = strip.previousElementSibling?.querySelector('.aqm-sort-progress:not(.aqm-small-series)');
+    const chip = strip.previousElementSibling?.querySelector('.aqm-sort-progress:not(.aqm-small-series):not(.aqm-claimed-series)');
     chip?.classList.toggle('is-on', byProgress);
     chip?.setAttribute('aria-pressed', String(byProgress));
     const small = strip.previousElementSibling?.querySelector('.aqm-small-series');
     small?.classList.toggle('is-on', smallOnly);
     small?.setAttribute('aria-pressed', String(smallOnly));
-    // Hidden: the small series. "Toutes les séries", the series shown and those without a count stay.
+    const claimedChip = strip.previousElementSibling?.querySelector('.aqm-claimed-series');
+    claimedChip?.classList.toggle('is-on', claimedHidden);
+    claimedChip?.setAttribute('aria-pressed', String(claimedHidden));
+    // Hidden: the small series, the series with a badge. "Toutes les séries", the series shown and those without a
+    // count stay.
     for (const { el, c, all } of rows) {
-      const hide = smallOnly && !all && c && c.total <= SMALL_SERIES && el.getAttribute('aria-checked') !== 'true' && !el.querySelector('[aria-checked="true"]');
+      const picked = el.getAttribute('aria-checked') === 'true' || !!el.querySelector('[aria-checked="true"]');
+      const claimed = claimedHidden && !!claimedSlugs && !all && !picked && claimedSlugs.has(claimedCoverSlug(el));
+      const hide = claimed || (smallOnly && !all && c && c.total <= SMALL_SERIES && !picked);
       const display = hide ? 'none' : '';
       if (el.style.display !== display) el.style.display = display;
     }
@@ -3079,7 +3133,7 @@
       st.toWantIds = [];
       st.toWant = 0;
       paintWant();
-      want.textContent = r.sent == null ? '🔭 En attente dans Aquaman' : '🔭 Recherche en cours…';
+      want.textContent = r.sent == null ? '🔭 En attente dans Celestial' : '🔭 Recherche en cours…';
       note.textContent = wantsNote(r, 'tu peux changer de page ou ouvrir des boosters');
     });
     paintWant();
@@ -3277,7 +3331,7 @@
                       {
                         type: 'button',
                         class: `aqm-want${c.wanted ? ' is-on' : ''}${c.waiting ? ' is-wait' : ''}`,
-                        title: c.waiting ? 'En attente dans Aquaman (ta liste du jeu est pleine) : ne plus la chercher' : c.wanted ? 'Ne plus la chercher' : 'Je la cherche : être prévenu quand elle est mise en vente',
+                        title: c.waiting ? 'En attente dans Celestial (ta liste du jeu est pleine) : ne plus la chercher' : c.wanted ? 'Ne plus la chercher' : 'Je la cherche : être prévenu quand elle est mise en vente',
                         onclick: async (e) => {
                           e.preventDefault();
                           want.disabled = true;
@@ -3409,7 +3463,7 @@
         if (dot.title !== title) dot.title = title;
       }
     } catch (e) {
-      console.warn('[Aquaman] échanges :', e);
+      console.warn('[Celestial] échanges :', e);
     } finally {
       tradesBusy = false;
     }
@@ -3531,7 +3585,7 @@
       chip.classList.toggle('is-on', isOn);
       chip.setAttribute('aria-pressed', String(isOn));
       const state = f.key === 'theirs' && isOn ? partner?.state : null;
-      const title = state === 'private' ? `${f.title} : sa collection est privée, rien n’est masqué.` : state === 'unknown' ? `${f.title} : Aquaman n’a pas trouvé ${name ?? 'ce joueur'}, rien n’est masqué.` : f.title;
+      const title = state === 'private' ? `${f.title} : sa collection est privée, rien n’est masqué.` : state === 'unknown' ? `${f.title} : Celestial n’a pas trouvé ${name ?? 'ce joueur'}, rien n’est masqué.` : f.title;
       if (chip.title !== title) chip.title = title;
       chip.classList.toggle('is-off', state === 'private' || state === 'unknown');
     }
@@ -3980,10 +4034,10 @@
       const when = left <= 1 ? 'au prochain booster' : `dans ${fmt(left)} boosters`;
       return h(
         'div',
-        { class: 'aqm-pity-line', title: p.known ? `${fmt(p.since)} booster${p.since > 1 ? 's' : ''} ouvert${p.since > 1 ? 's' : ''} depuis ta dernière ${code}.` : `Aquaman n’a pas encore vu de ${code} sortir : il compte depuis son installation, donc la garantie peut arriver plus tôt.` },
+        { class: 'aqm-pity-line', title: p.known ? `${fmt(p.since)} booster${p.since > 1 ? 's' : ''} ouvert${p.since > 1 ? 's' : ''} depuis ta dernière ${code}.` : `Celestial n’a pas encore vu de ${code} sortir : il compte depuis son installation, donc la garantie peut arriver plus tôt.` },
         h('p', {}, rarityCode(code), ' garantie ', h('strong', {}, when), p.known ? '' : ' au plus'),
         h('span', { class: 'aqm-bar' }, h('span', { style: `width:${Math.min(100, (100 * p.since) / p.every).toFixed(1)}%` })),
-        h('small', {}, p.known ? `${fmt(p.since)} / ${fmt(p.every)} depuis ta dernière ${code}` : `${fmt(p.since)} / ${fmt(p.every)} sans ${code} depuis qu’Aquaman compte`)
+        h('small', {}, p.known ? `${fmt(p.since)} / ${fmt(p.every)} depuis ta dernière ${code}` : `${fmt(p.since)} / ${fmt(p.every)} sans ${code} depuis que Celestial compte`)
       );
     };
     // The SEC has no guarantee: the boosters since the last one, and what the game's odds give, without a bar.
@@ -3996,7 +4050,7 @@
         'div',
         {
           class: 'aqm-pity-line is-sec',
-          title: `Pas de garantie pour la SEC : chaque booster a la même chance, la malchance passée ne la rapproche pas.${s.known ? '' : ' Aquaman n’a pas encore vu de SEC sortir : il compte depuis son installation.'}`
+          title: `Pas de garantie pour la SEC : chaque booster a la même chance, la malchance passée ne la rapproche pas.${s.known ? '' : ' Celestial n’a pas encore vu de SEC sortir : il compte depuis son installation.'}`
         },
         h('p', {}, rarityCode('SEC'), ' ', h('strong', {}, n), ' sans SEC'),
         h('small', {}, odds ? `Pas de garantie : ${odds}.` : 'Pas de garantie pour la SEC.')
@@ -4009,11 +4063,11 @@
         'p',
         { class: 'aqm-pity-note' },
         {
-          ok: 'Compté par Aquaman à chaque booster ouvert, et partagé entre tes appareils (PC, téléphone, extension ou script).',
-          waiting: 'Compté par Aquaman à chaque booster ouvert, et partagé entre tes appareils dès ta prochaine ouverture.',
-          error: 'Compté par Aquaman sur ce navigateur : le partage avec tes autres appareils ne répond pas pour le moment.',
-          off: 'Compté par Aquaman à chaque booster ouvert sur ce navigateur (partage entre appareils désactivé).'
-        }[pityReport.sync] ?? 'Compté par Aquaman à chaque booster ouvert.'
+          ok: 'Compté par Celestial à chaque booster ouvert, et partagé entre tes appareils (PC, téléphone, extension ou script).',
+          waiting: 'Compté par Celestial à chaque booster ouvert, et partagé entre tes appareils dès ta prochaine ouverture.',
+          error: 'Compté par Celestial sur ce navigateur : le partage avec tes autres appareils ne répond pas pour le moment.',
+          off: 'Compté par Celestial à chaque booster ouvert sur ce navigateur (partage entre appareils désactivé).'
+        }[pityReport.sync] ?? 'Compté par Celestial à chaque booster ouvert.'
       ),
       h('div', { class: 'aqm-pity-more' }, h('button', { type: 'button', class: 'aqm-album-btn', onclick: openPityHistory }, '📜 Historique'))
     );
@@ -4122,7 +4176,7 @@
               hits.map((x) => {
                 // The card's picture, the boosters it took and its pack (its name and day in the tooltip).
                 const link = x.card?.id ? { href: `/jeu/carte/${encodeURIComponent(x.card.id)}` } : {};
-                const tip = [x.card?.name ?? `${x.top}, carte inconnue`, x.pack?.guessed ? `${packName(x)} (déduit de la carte)` : packName(x), day(x.at), x.first ? 'Aquaman a commencé à compter après la précédente' : null].filter(Boolean).join(' · ');
+                const tip = [x.card?.name ?? `${x.top}, carte inconnue`, x.pack?.guessed ? `${packName(x)} (déduit de la carte)` : packName(x), day(x.at), x.first ? 'Celestial a commencé à compter après la précédente' : null].filter(Boolean).join(' · ');
                 return h(
                   x.card?.id ? 'a' : 'div',
                   { class: 'aqm-history-tile', ...link, title: tip },
@@ -4150,7 +4204,7 @@
                 type: 'button',
                 class: `aqm-history-packbtn${p.key === pack ? ' is-on' : ''}`,
                 'aria-pressed': String(p.key === pack),
-                title: p.key === UNKNOWN ? 'Cartes tirées avant la version 1.4.7 dont Aquaman ne connaît pas la carte : impossible de savoir leur pack.' : null,
+                title: p.key === UNKNOWN ? 'Cartes tirées avant la version 1.4.7 dont Celestial ne connaît pas la carte : impossible de savoir leur pack.' : null,
                 onclick: () => {
                   pack = p.key;
                   show();
@@ -4545,7 +4599,7 @@
   async function scanShop() {
     if (scanning) return;
     scanning = true;
-    const body = openOverlay('Scanner les packs', 'Aquaman lit d’abord le design de chaque pack de la boutique, puis le jeu dessine tes boosters en attente sur l’accueil.');
+    const body = openOverlay('Scanner les packs', 'Celestial lit d’abord le design de chaque pack de la boutique, puis le jeu dessine tes boosters en attente sur l’accueil.');
     const status = h('p', { class: 'aqm-note' }, 'Lecture des packs de la boutique (jusqu’à 20 s)…');
     body.append(status);
     let designs = new Map();
@@ -4581,7 +4635,7 @@
   async function scanPacks() {
     if (scanning) return;
     scanning = true;
-    const body = openOverlay('Scanner les packs', 'Le jeu dessine tes boosters en attente (1, 2 et 3 boosters et plus), puis Aquaman met le design de chaque pack de la boutique dans ces piles ; les dessins sont publiés pour toutes les extensions.');
+    const body = openOverlay('Scanner les packs', 'Le jeu dessine tes boosters en attente (1, 2 et 3 boosters et plus), puis Celestial met le design de chaque pack de la boutique dans ces piles ; les dessins sont publiés pour toutes les extensions.');
     const status = h('p', { class: 'aqm-note' }, 'Lecture des boosters de la boutique…');
     const list = h('ul', { class: 'aqm-scan-list' });
     body.append(status, list);
@@ -5397,7 +5451,7 @@
   // Entries of CHANGES newer than since (all of them without since).
   function openNews(since) {
     const entries = CHANGES.filter((c) => !since || versionNewer(c.version, since));
-    const body = openOverlay('Nouveautés', since ? `Ce qui a changé depuis la version ${since}.` : 'Ce qui a changé dans chaque version d’Aquaman.');
+    const body = openOverlay('Nouveautés', since ? `Ce qui a changé depuis la version ${since}.` : 'Ce qui a changé dans chaque version de Celestial.');
     for (const entry of entries.length ? entries : CHANGES.slice(0, 1)) {
       body.append(
         h('p', { class: 'aqm-label aqm-news-version' }, `Version ${entry.version}`),
@@ -5516,7 +5570,7 @@
       try {
         step();
       } catch (e) {
-        console.warn('[Aquaman]', e);
+        console.warn('[Celestial]', e);
       }
     }
     runText = undefined;
@@ -5550,7 +5604,7 @@
     const box = h(
       'div',
       { class: 'aqm-root aqm-update', role: 'status' },
-      h('div', { class: 'aqm-queue-head' }, h('strong', {}, '🔱 Aquaman est désactivé')),
+      h('div', { class: 'aqm-queue-head' }, h('strong', {}, '✨ Celestial est désactivé')),
       h('p', {}, 'L’auteur d’Aquaman a désactivé son utilisation pour ton compte.'),
       h('div', { class: 'aqm-update-actions' }, h('button', { type: 'button', class: 'aqm-queue-btn', onclick: () => box.remove() }, 'OK'))
     );
@@ -5594,12 +5648,12 @@
     const later = h('button', { type: 'button', class: 'aqm-queue-btn', onclick: () => (session('aqm-update-later', update.version), box.remove()) }, 'Plus tard');
     const iosSteps = () =>
       box.replaceChildren(
-        h('div', { class: 'aqm-queue-head' }, h('strong', {}, `🔱 Installer Aquaman ${update.version}`)),
+        h('div', { class: 'aqm-queue-head' }, h('strong', {}, `✨ Installer Celestial ${update.version}`)),
         h(
           'ol',
           { class: 'aqm-update-steps' },
           h('li', {}, 'Touche ', h('b', {}, 'ᴀA'), ' (ou ', h('b', {}, '🧩'), ') à gauche de la barre d’adresse, puis ', h('b', {}, 'Userscripts'), '.'),
-          h('li', {}, 'Dans le panneau de Userscripts, touche le bouton de ', h('b', {}, 'recherche de mises à jour'), ' (↻), puis mets à jour ', h('b', {}, 'Aquaman'), '.'),
+          h('li', {}, 'Dans le panneau de Userscripts, touche le bouton de ', h('b', {}, 'recherche de mises à jour'), ' (↻), puis mets à jour ', h('b', {}, 'Aquaman perso'), ' (son nom dans Userscripts).'),
           h('li', {}, 'Touche ', h('b', {}, 'Recharger'), ' ci-dessous : les nouveautés de la version s’affichent.')
         ),
         h('p', { class: 'aqm-muted' }, 'Userscripts ne trouve rien ? Suis les étapes « Mettre à jour sur iPhone et iPad » de la ', h('a', { href: INSTALL_PAGE, target: '_blank', rel: 'noopener' }, 'page d’installation'), '.'),
@@ -5608,12 +5662,12 @@
     const box = h(
       'div',
       { class: 'aqm-root aqm-update', role: 'status' },
-      h('div', { class: 'aqm-queue-head' }, h('strong', {}, `🔱 Aquaman ${update.version} est disponible`)),
+      h('div', { class: 'aqm-queue-head' }, h('strong', {}, `✨ Celestial ${update.version} est disponible`)),
       h(
         'p',
         {},
         IOS
-          ? `Tu as la version ${version}. Touche « Installer » : les étapes pour mettre Aquaman à jour avec Userscripts s’affichent ici.`
+          ? `Tu as la version ${version}. Touche « Installer » : les étapes pour mettre Celestial à jour avec Userscripts s’affichent ici.`
           : `Tu as la version ${version}. Touche « Installer », puis « Mettre à jour » dans Tampermonkey. Recharge ensuite cette page.`
       ),
       h(
@@ -5638,7 +5692,7 @@
     const box = h(
       'div',
       { class: 'aqm-root aqm-update aqm-reload', role: 'status' },
-      h('div', { class: 'aqm-queue-head' }, h('strong', {}, '🔱 Réglages d’Aquaman modifiés')),
+      h('div', { class: 'aqm-queue-head' }, h('strong', {}, '✨ Réglages de Celestial modifiés')),
       h('p', {}, 'Recharge la page pour les appliquer.'),
       h(
         'div',
@@ -5769,7 +5823,7 @@
         try {
           markBoosterKinds();
         } catch (e) {
-          console.warn('[Aquaman]', e);
+          console.warn('[Celestial]', e);
         }
       });
     });

@@ -102,8 +102,8 @@ function renderChart() {
     <line x1="${pad}" x2="${W - pad}" y1="${y(min)}" y2="${y(min)}" stroke="rgba(255,255,255,.08)"/>
     <line x1="${pad}" x2="${W - pad}" y1="${y(max)}" y2="${y(max)}" stroke="rgba(255,255,255,.08)"/>
     <text x="4" y="${y(max) + 4}" fill="#a1a1aa" font-size="12">${max}</text><text x="4" y="${y(min) + 4}" fill="#a1a1aa" font-size="12">${min}</text>
-    <path d="${path}" fill="none" stroke="#60a5fa" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
-    ${pts.map((p, i) => `<circle cx="${x(i)}" cy="${y(p.owned)}" r="3" fill="#60a5fa"><title>${lab(p)} : ${p.owned} cartes</title></circle>`).join('')}
+    <path d="${path}" fill="none" stroke="#a78bfa" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
+    ${pts.map((p, i) => `<circle cx="${x(i)}" cy="${y(p.owned)}" r="3" fill="#a78bfa"><title>${lab(p)} : ${p.owned} cartes</title></circle>`).join('')}
     <text x="${pad}" y="${Hh - 4}" fill="#a1a1aa" font-size="12">${lab(pts[0])}</text>
     <text x="${W - pad}" y="${Hh - 4}" fill="#a1a1aa" font-size="12" text-anchor="end">${lab(pts.at(-1))}</text></svg>`;
 }
