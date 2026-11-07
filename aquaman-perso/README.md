@@ -1,4 +1,4 @@
-# Celestial (ex-Aquaman perso) — v2.0.0
+# Celestial (ex-Aquaman perso) — v2.1.0
 
 Guide d'installation complet : voir le [README du dépôt](../README.md).
 
@@ -23,6 +23,20 @@ Guide d'installation complet : voir le [README du dépôt](../README.md).
 - **Relevé des beaux tirages chaque minute** en arrière-plan, et lecture automatique des collections des autres joueurs.
 - Permission `browsingData`.
 - Réglages de partage : forcés à « non » dans le code.
+
+## Nouveau en 2.1.0 : refonte de l'interface
+
+- **Base de style commune** : `src/ui/celestial.css` (couleurs, polices, pastilles de rareté, voyants) pour la fenêtre
+  et les pages. Polices embarquées, sans appel réseau : Inter et Space Grotesk (`src/ui/fonts/`, licence OFL).
+  Thème bleu nuit ; violet = actions, or = Perles et bonnes affaires.
+- **Fenêtre** : l'accueil devient un tableau de bord (collection et Perles lues dans « Ma progression » puis
+  rafraîchies par une lecture de `/me` à l'ouverture ; état des modules ; raccourcis). Nouvel onglet ⚙ **Réglages**
+  (notifications, mises à jour, synchro, confidentialité). Pastille dorée « vX dispo » dans l'en-tête.
+  Alertes : barre de rareté, carte en vente surlignée en or avec son prix (clic = page du marché).
+- **Pages** : barre du haut commune (`src/ui/pages-nav.js`) avec liens entre les pages et Perles ;
+  habillage commun `src/ui/pages.css`, chargé après le `<style>` propre à chaque page.
+- **Sur le site** : panneaux et menu « Plus » en bleu nuit avec liseré violet, étoile à la place des trois points.
+- **Nouveau logo** : étoile Celestial (icônes de l'extension, page d'installation `docs/`).
 
 ## Nouveau en 2.0.0 : Celestial
 

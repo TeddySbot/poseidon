@@ -105,6 +105,13 @@ async function render() {
   $("main").textContent = s.enabled ? "⏹ Tout arrêter" : "▶ Démarrer";
   $("sim").classList.toggle("on", s.dryRun); $("real").classList.toggle("on", !s.dryRun);
 
+  // résumé sur l'accueil
+  const sumV = document.getElementById("m-vente");
+  if (sumV) {
+    sumV.textContent = (!s.enabled ? "Arrêtée" : s.dryRun ? "Simulation" : "En marche") + (status.open != null ? ` · ${status.open} vente${status.open > 1 ? "s" : ""} en cours` : "");
+    document.getElementById("m-vente-dot").className = "cel-dot" + (status.error ? " err" : !s.enabled ? "" : s.dryRun ? " wait" : " on");
+  }
+
   // état
   $("phase").textContent = s.enabled || status.counting ? (status.phase || "Démarrage…") : "Arrêtée";
   $("dot").className = "dot " + (status.error ? "err" : (s.enabled || status.counting) ? "run" : "");

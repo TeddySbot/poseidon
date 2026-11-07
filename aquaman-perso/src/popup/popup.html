@@ -6,134 +6,132 @@
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
+    <svg aria-hidden="true" class="stars" width="380" height="110">
+      <circle cx="300" cy="16" r="1" fill="#c4b5fd" opacity="0.7"></circle>
+      <circle cx="338" cy="42" r="1.4" fill="#fff" opacity="0.45"></circle>
+      <circle cx="252" cy="50" r="0.8" fill="#fff" opacity="0.55"></circle>
+      <circle cx="212" cy="12" r="1.1" fill="#f5c76b" opacity="0.5"></circle>
+      <circle cx="364" cy="84" r="0.9" fill="#fff" opacity="0.4"></circle>
+    </svg>
+
     <header class="head">
-      <img src="../../icons/icon48.png" alt="" width="36" height="36" />
-      <div>
-        <h1>Celestial</h1>
+      <div class="cel-logo"><img src="../../icons/icon128.png" alt="" width="28" height="28" /></div>
+      <div class="grow">
+        <h1 class="cel-title">Celestial</h1>
         <p class="muted">Perso · v<span id="version"></span></p>
       </div>
       <span id="headPill" class="pill off" hidden></span>
+      <button type="button" id="updPill" class="upd-pill" data-goto="reglages" hidden></button>
     </header>
 
-    <nav class="tabs" role="tablist">
+    <nav class="tabs" role="tablist" aria-label="Sections">
       <button type="button" data-tab="home" class="on">Accueil</button>
       <button type="button" data-tab="alertes">Alertes<span id="alertCount" class="count" hidden></span></button>
-      <button type="button" data-tab="vente">Vente auto</button>
+      <button type="button" data-tab="vente">Vente</button>
+      <button type="button" data-tab="reglages" class="gear" aria-label="Réglages" title="Réglages">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" /></svg>
+      </button>
     </nav>
 
     <!-- ========== ACCUEIL ========== -->
     <section class="pane" id="pane-home">
-      <div id="update" class="banner" hidden>
-        <p><b>Celestial <span id="update-version"></span> est disponible.</b></p>
-        <div id="upd-ready" hidden>
-          <div class="row" style="margin-top: 8px"><button type="button" class="btn main small" id="installUpdate">Mettre à jour</button></div>
+      <div class="card hero">
+        <div class="row between top">
+          <div>
+            <span class="cel-label">Ma collection</span>
+            <div class="big cel-title num"><span id="h-pct">–</span><small>%</small></div>
+          </div>
+          <div class="right">
+            <span class="cel-label">Perles</span>
+            <div class="perles cel-title num" id="h-perles">–</div>
+          </div>
         </div>
-        <div id="upd-setup" hidden>
-          <p class="muted" style="margin-top: 4px">Pour mettre à jour en un clic, fais <b>une seule fois</b> : double-clic sur <code>installer-mises-a-jour.bat</code> dans le dossier de l’extension, puis ↻ dans <code>chrome://extensions</code>.</p>
-          <p class="muted" style="margin-top: 4px">Sinon : avec Git, <code>git pull</code> ; avec le zip, remplace le contenu du dossier ; puis ↻.</p>
-          <div class="row" style="margin-top: 8px"><button type="button" class="btn main small" data-open="releases">Page des versions</button></div>
+        <div class="bar big-bar"><i id="h-bar"></i></div>
+        <div class="row between hero-foot">
+          <span class="text2 num" id="h-owned">Ouvre « Ma progression »</span>
+          <button type="button" class="hero-link" id="openCompleter"><span id="h-missing">Compléter</span> <span aria-hidden="true">→</span></button>
         </div>
-        <p id="upd-msg" class="muted" style="margin-top: 6px"></p>
       </div>
 
-      <div class="card">
-        <label class="switch"><input type="checkbox" id="siteToggle" /> <span><b>Celestial sur le site</b></span></label>
-        <p id="siteInfo" class="muted" style="margin-top: 4px"></p>
+      <div class="card mods">
+        <h2>Modules</h2>
+        <button type="button" class="mod" data-goto="alertes">
+          <span id="m-alertes-dot" class="cel-dot"></span>
+          <span class="grow"><b>Alertes marché</b><small id="m-alertes">–</small></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </button>
+        <button type="button" class="mod" data-goto="vente">
+          <span id="m-vente-dot" class="cel-dot"></span>
+          <span class="grow"><b>Vente auto</b><small id="m-vente">–</small></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </button>
+        <button type="button" class="mod" data-open="/jeu">
+          <span id="m-boost-dot" class="cel-dot"></span>
+          <span class="grow"><b>Boosters</b><small id="status">…</small></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </button>
+        <label class="mod">
+          <span id="m-site-dot" class="cel-dot on"></span>
+          <span class="grow"><b>Celestial sur le site</b><small id="siteInfo"></small></span>
+          <input type="checkbox" id="siteToggle" class="toggle" />
+        </label>
       </div>
 
-      <div class="status"><p id="status" class="muted">…</p></div>
-
-      <nav class="actions">
-        <button type="button" class="btn main" data-open="/jeu">Ouvrir le jeu</button>
-        <div class="row">
-          <button type="button" class="btn grow" id="openProgression">Ma progression</button>
-          <button type="button" class="btn grow" id="openDoubles">Mes doubles</button>
-        </div>
-        <div class="row">
-          <button type="button" class="btn grow" id="openCompleter">Compléter ma collection</button>
-        </div>
-        <div class="row">
-          <button type="button" class="btn grow" data-open="/jeu#aqm-visite">Visite guidée</button>
-          <button type="button" class="btn grow" data-open="/jeu#aqm-nouveautes">Nouveautés</button>
-        </div>
-      </nav>
-
-      <div class="card">
-        <h2>Notifications</h2>
-        <label class="switch"><input type="checkbox" data-setting="notifyBoosters" /> <span>Nouveaux boosters à ouvrir</span></label>
-        <label class="switch"><input type="checkbox" data-setting="notifyUpdated" /> <span>Nouvelle version installée</span></label>
-
-        <h2 class="gap">Mises à jour <span class="sp"></span><button type="button" id="checkNow" class="link">Vérifier</button></h2>
-        <p class="muted">Toutes les 6 h, l’extension regarde sur GitHub si une version plus récente existe et te prévient. Rien ne s’installe sans ton clic sur « Mettre à jour ».</p>
-        <p id="updateInfo" class="muted" style="margin-top: 6px"></p>
-        <p id="updaterInfo" class="muted" style="margin-top: 6px"></p>
-
-        <h2 class="gap">Synchro entre appareils <span class="sp"></span><span id="syncPill" class="pill off">Non reliée</span></h2>
-        <p class="muted">Relie ton PC, ton téléphone et ton serveur : garantie anti-malchance et séries favorites partagées par un <b>Gist privé</b> de ton compte GitHub. Jeton avec seulement l’accès « Gists ».</p>
-        <div class="row" style="margin-top: 8px">
-          <input id="syncToken" class="field grow" type="password" placeholder="Jeton GitHub (Gists)" autocomplete="off" spellcheck="false" />
-          <button type="button" id="syncSave" class="btn small">Relier</button>
-        </div>
-        <div id="syncInfo" class="muted" style="margin-top: 6px"></div>
-
-        <h2 class="gap">Confidentialité</h2>
-        <p class="muted">Aucun serveur externe : seulement GitHub, pour les versions et ta synchro si tu l’actives. Aucune installation automatique. Tes données restent dans ce navigateur.</p>
+      <div class="shortcuts">
+        <button type="button" class="tile" id="openProgression"><b>Progression</b><small id="h-series">Séries</small></button>
+        <button type="button" class="tile" id="openDoubles"><b>Doubles</b><small id="h-dups">Vendre</small></button>
+        <button type="button" class="tile main" data-open="/jeu"><b>Ouvrir le jeu</b><small>Poseidon</small></button>
       </div>
     </section>
 
     <!-- ========== ALERTES ========== -->
     <section class="pane" id="pane-alertes" hidden>
-      <form id="a-add" class="card" autocomplete="off">
-        <h2>Surveiller une carte</h2>
-        <input id="a-name" class="field" list="a-sugg" placeholder="ex : Rosa Runcandel" required />
+      <form id="a-add" class="card pad" autocomplete="off">
+        <label class="cel-label" for="a-name">Surveiller une carte</label>
+        <div class="row">
+          <input id="a-name" class="field grow" list="a-sugg" placeholder="ex : Rosa Runcandel" required />
+          <input id="a-max" class="field price" type="number" min="1" placeholder="Prix max" aria-label="Prix max" />
+        </div>
         <datalist id="a-sugg"></datalist>
-        <div class="row" style="margin-top: 8px">
-          <div class="grow">
-            <label class="lab" for="a-max">Prix max</label>
-            <input id="a-max" class="field" type="number" min="1" placeholder="aucun" />
-          </div>
-          <div class="grow">
-            <label class="lab" for="a-rar">Rareté</label>
-            <select id="a-rar" class="field">
-              <option value="">Toutes</option>
-              <option value="N">Commune</option>
-              <option value="R">Rare</option>
-              <option value="SR">Épique</option>
-              <option value="SSR">Légendaire</option>
-              <option value="UR">Mythique</option>
-              <option value="SEC">Secrète</option>
-            </select>
-          </div>
+        <div class="row">
+          <select id="a-rar" class="field grow" aria-label="Rareté">
+            <option value="">Toutes les raretés</option>
+            <option value="N">Commune</option>
+            <option value="R">Rare</option>
+            <option value="SR">Épique</option>
+            <option value="SSR">Légendaire</option>
+            <option value="UR">Mythique</option>
+            <option value="SEC">Secrète</option>
+          </select>
+          <button type="submit" class="cel-btn main">Ajouter</button>
         </div>
         <label class="switch"><input id="a-exact" type="checkbox" checked /> <span>Nom exact (décoché : le nom contient le texte)</span></label>
-        <div class="row" style="margin-top: 10px"><button type="submit" class="btn main grow">Ajouter à ma liste</button></div>
       </form>
 
       <div class="card">
-        <h2>Ma liste <span class="sp"></span><span id="a-paused" class="pill sim" hidden>En pause</span></h2>
+        <h2 class="in">Ma liste <span class="sp"></span><span id="a-paused" class="pill sim" hidden>En pause</span></h2>
         <ul id="a-list" class="list"></ul>
       </div>
 
-      <div class="card">
-        <div class="row">
-          <span id="a-dot" class="dot"></span>
-          <p id="a-status" class="muted grow">—</p>
-        </div>
-        <div class="row" style="margin-top: 10px">
-          <select id="a-interval" class="field" style="width: auto" title="Fréquence de vérification">
-            <option value="2">Toutes les 2 s</option>
-            <option value="3">Toutes les 3 s</option>
-            <option value="5">Toutes les 5 s</option>
-            <option value="10">Toutes les 10 s</option>
-            <option value="15">Toutes les 15 s</option>
-            <option value="30">Toutes les 30 s</option>
-            <option value="60">Chaque minute</option>
-          </select>
-          <button type="button" id="a-now" class="btn small grow">Vérifier</button>
-          <button type="button" id="a-pause" class="btn small">Pause</button>
-        </div>
-        <p class="muted" style="margin-top: 8px">Ventes à prix fixe seulement, pas les enchères. Rien n’est jamais acheté à ta place.</p>
+      <div class="card statusbar">
+        <span id="a-dot" class="cel-dot"></span>
+        <p id="a-status" class="grow text2">—</p>
+        <button type="button" id="a-now" class="cel-btn small">Vérifier</button>
+        <button type="button" id="a-pause" class="cel-btn small">Pause</button>
       </div>
+      <div class="row between">
+        <label class="muted" for="a-interval">Fréquence</label>
+        <select id="a-interval" class="field auto" title="Fréquence de vérification">
+          <option value="2">Toutes les 2 s</option>
+          <option value="3">Toutes les 3 s</option>
+          <option value="5">Toutes les 5 s</option>
+          <option value="10">Toutes les 10 s</option>
+          <option value="15">Toutes les 15 s</option>
+          <option value="30">Toutes les 30 s</option>
+          <option value="60">Chaque minute</option>
+        </select>
+      </div>
+      <p class="muted center">Prix fixe seulement, pas les enchères. Rien n’est acheté à ta place.</p>
     </section>
 
     <!-- ========== VENTE AUTO ========== -->
@@ -146,7 +144,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card pad">
         <div class="phase"><span id="v-dot" class="dot"></span><span id="v-phase" class="grow">–</span><span id="v-pill" class="pill off">Arrêtée</span></div>
         <div id="v-progress" hidden>
           <div class="bar"><i id="v-barFill"></i></div>
@@ -168,25 +166,25 @@
       </nav>
 
       <div id="v-activity">
-        <div class="card" id="v-planBox" hidden>
+        <div class="card pad" id="v-planBox" hidden>
           <h2 id="v-planTitle">Dernière simulation</h2>
           <div class="scroll"><table id="v-plan"></table></div>
         </div>
-        <div class="card" style="margin-top: 10px">
+        <div class="card pad" style="margin-top: 10px">
           <h2>Journal <span class="sp"></span><button type="button" id="v-clearLog" class="link">Effacer</button></h2>
           <div id="v-log" class="log scroll"></div>
         </div>
       </div>
 
       <div id="v-settings" hidden>
-        <div class="card">
+        <div class="card pad">
           <h2>Raretés à vendre · prix plancher</h2>
           <div class="rar">
-            <label><input type="checkbox" id="v-rN" /> <span class="R-N">Commune</span></label><span class="hint"></span>
+            <label><input type="checkbox" id="v-rN" /> <span class="cel-rar N">N</span> <span>Commune</span></label><span class="hint"></span>
             <div class="row"><input type="number" id="v-fN" class="field num" min="1" /> P</div>
-            <label><input type="checkbox" id="v-rR" /> <span class="R-R">Rare</span></label><span class="hint"></span>
+            <label><input type="checkbox" id="v-rR" /> <span class="cel-rar R">R</span> <span>Rare</span></label><span class="hint"></span>
             <div class="row"><input type="number" id="v-fR" class="field num" min="1" /> P</div>
-            <label><input type="checkbox" id="v-rSR" /> <span class="R-SR">Épique</span></label><span class="hint">en dernier</span>
+            <label><input type="checkbox" id="v-rSR" /> <span class="cel-rar SR">SR</span> <span>Épique</span></label><span class="hint">en dernier</span>
             <div class="row"><input type="number" id="v-fSR" class="field num" min="1" /> P</div>
           </div>
           <h2 class="gap">Prix</h2>
@@ -211,16 +209,63 @@
 
       <div id="v-actions" hidden>
         <div class="acts">
-          <button type="button" class="act" id="v-stats"><span class="ic">📊</span><div><b>Statistiques</b><span>Perles rapportées, collection, historique</span></div></button>
-          <button type="button" class="act" id="v-rotate"><span class="ic">🔄</span><div><b>Rotation maintenant</b><span>Met à jour les prix de ses ventes, puis remplit</span></div></button>
-          <button type="button" class="act" id="v-rescan"><span class="ic">🗂️</span><div><b>Refaire l’inventaire</b><span>Relit toute la collection</span></div></button>
-          <button type="button" class="act danger" id="v-withdraw"><span class="ic">⛔</span><div><b id="v-withdrawLab">Tout retirer et arrêter</b><span>Retire toutes les ventes à prix fixe (2 clics)</span></div></button>
+          <button type="button" class="act" id="v-stats"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg></span><div><b>Statistiques</b><span>Perles rapportées, collection, historique</span></div></button>
+          <button type="button" class="act" id="v-rotate"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16M20 20v-4h-4" /></svg></span><div><b>Rotation maintenant</b><span>Met à jour les prix de ses ventes, puis remplit</span></div></button>
+          <button type="button" class="act" id="v-rescan"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18M8 4v5" /></svg></span><div><b>Refaire l’inventaire</b><span>Relit toute la collection</span></div></button>
+          <button type="button" class="act danger" id="v-withdraw"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></svg></span><div><b id="v-withdrawLab">Tout retirer et arrêter</b><span>Retire toutes les ventes à prix fixe (2 clics)</span></div></button>
         </div>
         <p class="muted" style="margin-top: 10px">Ne l’utilise pas en même temps que la « file de doublons » ou « Retirer mes ventes » de Celestial sur le site : les deux géreraient tes ventes.</p>
       </div>
     </section>
 
-    <footer class="foot"><span>D’après Aquaman de A-Finch13 (MIT) · Alertes et Vente auto par Teddy</span></footer>
+    <!-- ========== RÉGLAGES ========== -->
+    <section class="pane" id="pane-reglages" hidden>
+      <div class="card">
+        <h2 class="in">Notifications</h2>
+        <label class="mod"><span class="grow">Nouveaux boosters à ouvrir</span><input type="checkbox" class="toggle" data-setting="notifyBoosters" /></label>
+        <label class="mod"><span class="grow">Nouvelle version installée</span><input type="checkbox" class="toggle" data-setting="notifyUpdated" /></label>
+      </div>
+
+      <div class="card pad">
+        <h2>Mises à jour <span class="sp"></span><button type="button" id="checkNow" class="link">Vérifier</button></h2>
+        <div id="update" class="banner" hidden>
+          <p><b>Celestial <span id="update-version"></span> est disponible.</b></p>
+          <div id="upd-ready" hidden>
+            <button type="button" class="cel-btn gold wide" id="installUpdate" style="margin-top: 10px">Mettre à jour</button>
+          </div>
+          <div id="upd-setup" hidden>
+            <p class="muted" style="margin-top: 6px">Pour mettre à jour en un clic, fais <b>une seule fois</b> : double-clic sur <code>installer-mises-a-jour.bat</code> dans le dossier de l’extension, puis ↻ dans <code>chrome://extensions</code>.</p>
+            <p class="muted" style="margin-top: 4px">Sinon : avec Git, <code>git pull</code> ; avec le zip, remplace le contenu du dossier ; puis ↻.</p>
+            <button type="button" class="cel-btn small" data-open="releases" style="margin-top: 8px">Page des versions</button>
+          </div>
+          <p id="upd-msg" class="muted" style="margin-top: 6px"></p>
+        </div>
+        <p class="muted">Toutes les 6 h, l’extension regarde sur GitHub si une version plus récente existe. Rien ne s’installe sans ton clic.</p>
+        <p id="updateInfo" class="muted" style="margin-top: 6px"></p>
+        <p id="updaterInfo" class="muted" style="margin-top: 6px"></p>
+      </div>
+
+      <div class="card pad">
+        <h2>Synchro entre appareils <span class="sp"></span><span id="syncPill" class="pill off">Non reliée</span></h2>
+        <p class="muted">Relie ton PC, ton téléphone et ton serveur : garantie anti-malchance et séries favorites partagées par un <b>Gist privé</b> de ton compte GitHub. Jeton avec seulement l’accès « Gists ».</p>
+        <div class="row" style="margin-top: 10px">
+          <input id="syncToken" class="field grow" type="password" placeholder="Jeton GitHub (Gists)" autocomplete="off" spellcheck="false" aria-label="Jeton GitHub" />
+          <button type="button" id="syncSave" class="cel-btn small">Relier</button>
+        </div>
+        <div id="syncInfo" class="muted" style="margin-top: 6px"></div>
+      </div>
+
+      <div class="privacy">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z" /><path d="M8.5 12l2.5 2.5 4.5-5" stroke-linecap="round" /></svg>
+        <p class="text2"><b>Confidentialité.</b> Aucun serveur externe : seulement GitHub, pour les versions et ta synchro si tu l’actives. Tes données restent dans ce navigateur.</p>
+      </div>
+
+      <div class="links">
+        <a href="#" data-open="/jeu#aqm-visite">Visite guidée</a>
+        <a href="#" data-open="/jeu#aqm-nouveautes">Nouveautés</a>
+      </div>
+      <footer class="foot">D’après Aquaman de A-Finch13 (MIT) · Alertes et Vente auto par Teddy</footer>
+    </section>
 
     <script type="module" src="popup.js"></script>
     <script type="module" src="popup-alertes.js"></script>

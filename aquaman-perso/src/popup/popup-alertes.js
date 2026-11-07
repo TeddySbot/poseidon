@@ -27,7 +27,7 @@ async function render() {
     const live = Object.keys(alerts[w.id]?.listings || {}).length;
     if (live) liveCount++;
     const best = Object.values(alerts[w.id]?.listings || {}).sort((a, b) => a.price - b.price)[0];
-    const crit = [w.exact ? 'nom exact' : 'contient', w.rarity ? RAR[w.rarity] : null, w.maxPrice ? `≤ ${w.maxPrice} P` : null].filter(Boolean).join(' · ');
+    const crit = [w.maxPrice ? `Max ${w.maxPrice} P` : 'Aucun prix max', w.exact ? 'nom exact' : 'contient', live > 1 ? `${live} en vente` : null].filter(Boolean).join(' · ');
     const x = el('button', { type: 'button', class: 'x', title: 'Retirer', 'aria-label': `Retirer ${w.name}` }, '×');
     x.addEventListener('click', async () => {
       const s = await load();
@@ -35,15 +35,25 @@ async function render() {
       chrome.notifications.clear('w:' + w.id);
       render();
     });
-    const name = el('div', { class: 'name' }, el('b', {}, w.name), el('small', {}, crit));
-    const right = live ? el('span', { class: 'pill live', title: `${live} annonce(s)` }, `${best ? best.price + ' P' : ''}${live > 1 ? ` · ${live}` : ''}`) : null;
-    const li = el('li', {}, el('span', { class: `dot ${live ? 'on' : ''}`, title: live ? `${live} en vente` : 'pas en vente' }), name, right, x);
-    if (live && best?.cardId) {
-      name.style.cursor = 'pointer';
-      name.title = 'Ouvrir la carte sur le marché';
-      name.addEventListener('click', () => chrome.tabs.create({ url: `https://poseidon-scans.net/jeu/marche/${best.cardId}` }));
+    const title = el('b', {}, el('span', { class: 'grow', style: 'overflow:hidden;text-overflow:ellipsis' }, w.name), w.rarity ? el('span', { class: `cel-rar ${w.rarity}`, title: RAR[w.rarity] }, w.rarity) : null);
+    const name = el('div', { class: 'name' }, title, el('small', {}, crit));
+    const strip = el('span', { class: `cel-strip ${w.rarity || ''}`, 'aria-hidden': 'true' });
+    let right = null;
+    if (live && best) {
+      right = el('button', { type: 'button', class: 'price-live', title: 'Ouvrir la carte sur le marché' }, `${best.price} P`);
+      if (best.cardId) right.addEventListener('click', () => chrome.tabs.create({ url: `https://poseidon-scans.net/jeu/marche/${best.cardId}` }));
     }
+    const li = el('li', { class: live ? 'live' : null }, strip, name, right, x);
     ul.append(li);
+  }
+  // résumé sur l'accueil
+  const sum = $('#m-alertes');
+  if (sum) {
+    const n = watches.length;
+    sum.textContent = !n
+      ? 'Aucune carte surveillée'
+      : `${n} carte${n > 1 ? 's' : ''} surveillée${n > 1 ? 's' : ''}` + (paused ? ' · en pause' : liveCount ? ` · ${liveCount} en vente !` : ` · toutes les ${intervalSec < 60 ? intervalSec + ' s' : 'minutes'}`);
+    $('#m-alertes-dot').className = 'cel-dot' + (status.error ? ' err' : paused ? ' wait' : n ? ' on' : '');
   }
   const badge = $('#alertCount');
   badge.hidden = !liveCount;
@@ -52,18 +62,18 @@ async function render() {
   const st = $('#a-status');
   const dot = $('#a-dot');
   st.style.color = '';
-  dot.className = 'dot';
+  dot.className = 'cel-dot' + (paused ? ' wait' : '');
   if (paused) st.textContent = 'Surveillance en pause.';
   else if (status.error === 'AUTH') {
     st.style.color = 'var(--bad)';
-    dot.className = 'dot err';
+    dot.className = 'cel-dot err';
     st.replaceChildren('Non connecté. ', el('a', { href: 'https://poseidon-scans.net/jeu/marche', target: '_blank' }, 'Se connecter'));
   } else if (status.error) {
     st.style.color = 'var(--bad)';
-    dot.className = 'dot err';
+    dot.className = 'cel-dot err';
     st.textContent = status.error;
   } else if (status.lastCheck) {
-    dot.className = watches.length ? 'dot on' : 'dot';
+    dot.className = watches.length ? 'cel-dot on' : 'cel-dot';
     st.textContent = 'Vérifié à ' + new Date(status.lastCheck).toLocaleTimeString('fr-FR');
   } else st.textContent = 'Pas encore vérifié';
 }

@@ -1,0 +1,280 @@
+/* Celestial : habillage commun des pages complètes (Ma progression, Mes doubles, Compléter, Stats).
+   Chargé APRÈS le <style> de chaque page : il remplace les couleurs et la forme d'origine (style Aquaman)
+   sans toucher à la mise en page propre à chaque page. Couleurs et polices : celestial.css. */
+
+:root {
+  /* les pages redéfinissent ces noms dans leur <style> : on remet ceux de Celestial */
+  --bg: #0b1022;
+  --line: rgba(148, 163, 255, 0.12);
+  --line2: rgba(148, 163, 255, 0.22);
+  --ok: #34d399;
+  --bad: #f87171;
+  /* anciens noms utilisés par les pages */
+  --panel: var(--card);
+  --panel2: var(--card2);
+  --txt: var(--text);
+  --mut: var(--muted);
+  --acc: var(--accent);
+  --blue: var(--action);
+  --sim: var(--warn);
+}
+
+body {
+  background: var(--bg);
+  font: 14px/1.5 var(--font);
+}
+a {
+  color: var(--accent-soft);
+}
+
+/* ---------- barre du haut (ajoutée par pages-nav.js) ---------- */
+.cel-top {
+  border-bottom: 1px solid var(--line);
+  background: rgba(7, 11, 24, 0.6);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(8px);
+}
+.cel-top-in {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 26px;
+}
+.cel-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--text);
+}
+.cel-brand .cel-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+
+.cel-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.cel-nav a {
+  padding: 7px 12px;
+  border-radius: 9px;
+  color: var(--text2);
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.cel-nav a:hover {
+  background: rgba(148, 163, 255, 0.07);
+  color: var(--text);
+  text-decoration: none;
+}
+.cel-nav a[aria-current='page'] {
+  background: var(--accent-bg);
+  color: #ddd6fe;
+  font-weight: 600;
+}
+.cel-perles {
+  margin-left: auto;
+  color: var(--gold);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- en-tête de page ---------- */
+header img {
+  display: none;
+}
+header .kick {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+header h1 {
+  font-family: var(--font-title);
+  font-size: 30px;
+  font-weight: 700;
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: 0.1px;
+  margin-top: 2px;
+}
+
+/* ---------- boutons ---------- */
+button {
+  border-radius: 10px;
+  font-weight: 600;
+  background: var(--action);
+  transition: background 0.15s var(--ease), border-color 0.15s;
+}
+button:hover:not(:disabled) {
+  filter: none;
+  background: var(--action-hi);
+}
+button.ghost {
+  background: transparent;
+  border-color: var(--line2);
+  color: var(--text);
+}
+button.ghost:hover:not(:disabled) {
+  background: rgba(148, 163, 255, 0.08);
+}
+button.ok {
+  background: #059669;
+}
+button.ok:hover:not(:disabled) {
+  background: #10b981;
+}
+button.armed {
+  background: #c2410c;
+}
+button.danger {
+  background: transparent;
+  border-color: rgba(248, 113, 113, 0.4);
+  color: var(--bad-soft);
+}
+.seg {
+  border-radius: 10px;
+  background: var(--card);
+}
+.seg button {
+  border-radius: 7px;
+  background: transparent;
+}
+.seg button:hover:not(:disabled) {
+  background: rgba(148, 163, 255, 0.08);
+}
+.seg button.on,
+.seg button.on:hover:not(:disabled) {
+  background: var(--action);
+  color: #fff;
+}
+
+/* ---------- blocs ---------- */
+.card,
+.tile {
+  background: var(--card);
+  border-color: var(--line);
+}
+.card h2 {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.tile .lab {
+  color: var(--muted);
+  font-weight: 500;
+}
+.tile .val {
+  font-family: var(--font-title);
+  font-weight: 700;
+}
+.tile.hero {
+  background: var(--card);
+  border-color: rgba(167, 139, 250, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.08), 0 0 24px rgba(124, 58, 237, 0.12);
+}
+.tile.hero .val {
+  color: var(--accent-soft);
+}
+.field {
+  background: var(--bg);
+  border-color: var(--line2);
+}
+.field:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.bar {
+  background: var(--card3);
+}
+.bar i {
+  background: var(--accent);
+}
+.bar.done i {
+  background: var(--ok);
+}
+.prop {
+  background: var(--card2);
+  border-color: var(--line);
+}
+.cc {
+  background: var(--card);
+  border-color: var(--line);
+}
+.cc img,
+.thumb {
+  background: var(--bg-deep);
+}
+.tip {
+  background: var(--card2);
+  border-color: var(--line2);
+}
+.statusline.run,
+.progress {
+  color: var(--warn);
+}
+
+/* ---------- tableaux ---------- */
+th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+th,
+td {
+  border-bottom-color: rgba(148, 163, 255, 0.08);
+}
+td {
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+tbody tr:hover td,
+tr.srow:hover td {
+  background: rgba(148, 163, 255, 0.04);
+}
+tr.detail td {
+  background: var(--card2);
+}
+tr.sel td {
+  background: rgba(124, 58, 237, 0.12);
+}
+tr.total td {
+  border-top-color: var(--line2);
+}
+
+/* ---------- raretés (même code que la fenêtre) ---------- */
+.R-N { color: var(--r-N); }
+.R-R { color: var(--r-R); }
+.R-SR { color: var(--r-SR); }
+.R-SSR { color: var(--r-SSR); }
+.R-UR { color: var(--r-UR); }
+.R-SEC { color: var(--r-SEC); }
+
+.pill {
+  font-weight: 600;
+}
+.up,
+.log .sold {
+  color: var(--ok-soft);
+}
+
+/* liens d'en-tête devenus inutiles : la barre du haut relie déjà les pages */
+header #toProgression,
+header #doubles,
+header #completer {
+  display: none;
+}

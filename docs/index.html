@@ -3,32 +3,57 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Aquaman perso · Installation</title>
-    <meta name="description" content="Installer Aquaman perso : compagnon du jeu de cartes de Poseidon Scans, avec alertes du marché et vente auto des doublons. Sans serveur externe." />
+    <title>Celestial · Installation</title>
+    <meta name="description" content="Installer Celestial : compagnon du jeu de cartes de Poseidon Scans, avec alertes du marché et vente auto des doublons. Sans serveur externe." />
     <link rel="icon" href="icon128.png" />
+    <meta name="theme-color" content="#0b1022" />
     <style>
+      @font-face {
+        font-family: 'Inter';
+        font-weight: 100 900;
+        font-display: swap;
+        src: url('fonts/inter.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Space Grotesk';
+        font-weight: 300 700;
+        font-display: swap;
+        src: url('fonts/space-grotesk.woff2') format('woff2');
+      }
       :root {
         color-scheme: dark;
-        --bg: #0b0b0d;
-        --card: #18181b;
-        --card2: #202024;
-        --line: rgba(255, 255, 255, 0.08);
-        --line2: rgba(255, 255, 255, 0.14);
-        --text: #f4f4f5;
-        --muted: #a1a1aa;
-        --accent: #60a5fa;
-        --blue: #2563eb;
-        --ok: #22c55e;
+        --bg: #0b1022;
+        --card: #121a33;
+        --card2: #18223f;
+        --line: rgba(148, 163, 255, 0.12);
+        --line2: rgba(148, 163, 255, 0.22);
+        --text: #eef0ff;
+        --text2: #c3c9e6;
+        --muted: #9aa3c7;
+        --accent: #c4b5fd;
+        --blue: #7c3aed;
+        --blue-hi: #8b5cf6;
+        --gold: #f5c76b;
+        --ok: #34d399;
         --warn: #fbbf24;
+        --title: 'Space Grotesk', 'Inter', 'Segoe UI', system-ui, sans-serif;
       }
       * {
         box-sizing: border-box;
       }
       body {
         margin: 0;
-        background: radial-gradient(1200px 500px at 50% -120px, rgba(37, 99, 235, 0.22), transparent 70%), var(--bg);
+        background:
+          radial-gradient(1px 1px at 12% 8%, rgba(255, 255, 255, 0.7), transparent),
+          radial-gradient(1px 1px at 78% 5%, rgba(196, 181, 253, 0.8), transparent),
+          radial-gradient(1.5px 1.5px at 88% 18%, rgba(255, 255, 255, 0.5), transparent),
+          radial-gradient(1px 1px at 30% 22%, rgba(245, 199, 107, 0.7), transparent),
+          radial-gradient(1px 1px at 62% 14%, rgba(255, 255, 255, 0.45), transparent),
+          radial-gradient(1100px 480px at 50% -140px, rgba(124, 58, 237, 0.22), transparent 70%),
+          var(--bg);
+        background-repeat: no-repeat;
         color: var(--text);
-        font: 16px/1.6 system-ui, -apple-system, 'Segoe UI', sans-serif;
+        font: 16px/1.6 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
       }
       a {
         color: var(--accent);
@@ -50,31 +75,30 @@
         text-align: center;
       }
       header img {
-        width: 104px;
-        height: 104px;
-        border-radius: 26px;
-        box-shadow: 0 18px 50px rgba(37, 99, 235, 0.35);
+        width: 128px;
+        height: 128px;
+        filter: drop-shadow(0 10px 40px rgba(167, 139, 250, 0.45));
       }
       .kick {
         margin-top: 18px;
         font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.16em;
+        font-weight: 600;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: var(--accent);
+        color: var(--muted);
       }
       h1 {
-        margin: 4px 0 10px;
-        font-size: clamp(38px, 8vw, 60px);
+        margin: 6px 0 12px;
+        font-family: var(--title);
+        font-size: clamp(42px, 9vw, 68px);
         line-height: 1;
-        font-weight: 900;
-        font-style: italic;
-        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: -0.5px;
       }
       .lead {
         max-width: 620px;
         margin: 0 auto;
-        color: #d4d4d8;
+        color: var(--text2);
       }
       .cta {
         display: flex;
@@ -89,22 +113,24 @@
         gap: 8px;
         height: 46px;
         padding: 0 22px;
-        border-radius: 999px;
+        border-radius: 12px;
         border: 1px solid var(--line2);
-        background: rgba(255, 255, 255, 0.05);
+        background: transparent;
         color: var(--text);
-        font-weight: 800;
+        font-weight: 600;
         text-decoration: none;
+        transition: background 0.15s;
       }
       .btn:hover {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(148, 163, 255, 0.08);
       }
       .btn.main {
         background: var(--blue);
         border-color: transparent;
+        color: #fff;
       }
       .btn.main:hover {
-        filter: brightness(1.12);
+        background: var(--blue-hi);
       }
       .chips {
         display: flex;
@@ -128,16 +154,19 @@
         margin-top: 44px;
       }
       h2 {
-        margin: 0 0 14px;
-        font-size: 13px;
-        font-weight: 800;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--accent);
+        margin: 0 0 16px;
+        font-family: var(--title);
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      h3 {
+        font-family: var(--title);
+        font-weight: 600;
       }
       .card {
         padding: 18px 20px;
-        border-radius: 18px;
+        border-radius: 16px;
         background: var(--card);
         border: 1px solid var(--line);
       }
@@ -153,7 +182,7 @@
         counter-increment: s;
         position: relative;
         padding: 16px 18px 16px 64px;
-        border-radius: 18px;
+        border-radius: 16px;
         background: var(--card);
         border: 1px solid var(--line);
       }
@@ -165,10 +194,13 @@
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: var(--blue);
+        background: #1c1640;
+        border: 1px solid rgba(167, 139, 250, 0.45);
+        color: var(--accent);
         display: grid;
         place-items: center;
-        font-weight: 900;
+        font-family: var(--title);
+        font-weight: 700;
       }
       ol.steps h3 {
         margin: 2px 0 4px;
@@ -176,7 +208,7 @@
       }
       ol.steps p {
         margin: 0;
-        color: #d4d4d8;
+        color: var(--text2);
       }
       ol.steps p + p {
         margin-top: 6px;
@@ -193,8 +225,8 @@
         color: #fde68a;
       }
       .note.ok {
-        background: rgba(34, 197, 94, 0.08);
-        border: 1px solid rgba(34, 197, 94, 0.3);
+        background: rgba(52, 211, 153, 0.08);
+        border: 1px solid rgba(52, 211, 153, 0.3);
         color: #bbf7d0;
       }
       .grid {
@@ -204,7 +236,7 @@
       }
       .feat {
         padding: 16px 18px;
-        border-radius: 18px;
+        border-radius: 16px;
         background: var(--card);
         border: 1px solid var(--line);
       }
@@ -220,8 +252,8 @@
         font-size: 14px;
       }
       .feat.new {
-        border-color: rgba(96, 165, 250, 0.35);
-        background: linear-gradient(135deg, rgba(37, 99, 235, 0.14), var(--card) 65%);
+        border-color: rgba(167, 139, 250, 0.4);
+        box-shadow: 0 0 24px rgba(124, 58, 237, 0.1);
       }
       details {
         border-radius: 16px;
@@ -235,11 +267,11 @@
       summary {
         cursor: pointer;
         padding: 14px 0;
-        font-weight: 750;
+        font-weight: 600;
       }
       details p {
         margin: 0 0 14px;
-        color: #d4d4d8;
+        color: var(--text2);
       }
       footer {
         margin-top: 48px;
@@ -258,10 +290,10 @@
   <body>
     <div class="wrap">
       <header>
-        <img src="icon128.png" alt="" />
+        <img src="logo.png" alt="Celestial" width="128" height="128" />
         <div class="kick">Poseidon Scans · jeu de cartes</div>
-        <h1>Aquaman</h1>
-        <p class="lead">Classement entre amis, boosters rentables, cartes possédées dans les échanges, <b>alertes du marché</b> et <b>vente auto des doublons</b>, le tout dans une seule extension. Aucun serveur externe. Installation : 5 minutes.</p>
+        <h1>Celestial</h1>
+        <p class="lead">Ta collection d’un coup d’œil, tes doubles à vendre, les cartes qui te manquent, les <b>alertes du marché</b> et la <b>vente auto des doublons</b>, le tout dans une seule extension. Aucun serveur externe. Installation : 5 minutes.</p>
         <div class="cta">
           <a class="btn main" href="https://github.com/TeddySbot/poseidon/releases/latest/download/aquaman-perso.zip">⬇ Télécharger l’extension</a>
           <a class="btn" href="https://github.com/TeddySbot/poseidon">Voir le code</a>
@@ -289,8 +321,8 @@
             <p>Tape <code>chrome://extensions</code> dans la barre d’adresse (Edge : <code>edge://extensions</code>, Brave : <code>brave://extensions</code>), puis active le <b>Mode développeur</b> en haut à droite.</p>
           </li>
           <li>
-            <h3>Charger Aquaman</h3>
-            <p>Clique sur <b>Charger l’extension non empaquetée</b> et choisis le dossier qui contient <code>manifest.json</code>.</p>
+            <h3>Charger Celestial</h3>
+            <p>Clique sur <b>Charger l’extension non empaquetée</b> et choisis le dossier qui contient <code>manifest.json</code>. Dans la liste, elle s’appelle encore <b>Aquaman (perso)</b> : c’est bien elle.</p>
             <p>Épingle l’icône (🧩 puis 📌) : le badge affiche tes boosters à ouvrir et tes alertes.</p>
           </li>
           <li>
@@ -298,7 +330,7 @@
             <p>Va sur <a href="https://poseidon-scans.net/jeu">poseidon-scans.net/jeu</a> et connecte-toi : la visite guidée démarre toute seule.</p>
           </li>
         </ol>
-        <div class="note ok"><b>Comment savoir que ça marche ?</b> Un onglet <b>Plus</b> apparaît à droite de <b>Marché</b>, et la fenêtre de l’extension a trois onglets : Accueil, Alertes, Vente auto. Si rien n’apparaît, recharge la page du jeu.</div>
+        <div class="note ok"><b>Comment savoir que ça marche ?</b> Un onglet <b>Plus</b> marqué d’une étoile violette apparaît à droite de <b>Marché</b>, et la fenêtre de l’extension a les onglets Accueil, Alertes, Vente et ⚙ Réglages. Si rien n’apparaît, recharge la page du jeu.</div>
         <div class="note warn">Si tu as déjà l’Aquaman d’origine, retire-le d’abord dans <code>chrome://extensions</code> : les deux en même temps feraient tout en double.</div>
       </section>
 
@@ -307,7 +339,7 @@
         <div class="grid">
           <div class="card">
             <h3 style="margin:0 0 8px">🤖 Android · Firefox</h3>
-            <ol style="margin:0;padding-left:20px;color:#d4d4d8">
+            <ol style="margin:0;padding-left:20px;color:var(--text2)">
               <li>Installe <b>Firefox</b> depuis le Play Store.</li>
               <li>Menu ⋮ → <b>Modules complémentaires</b> → <b>Tampermonkey</b> → <b>Ajouter</b>.</li>
               <li>Ouvre <a href="https://github.com/TeddySbot/poseidon/releases/latest/download/aquaman-perso.user.js">aquaman-perso.user.js</a> dans Firefox → <b>Installer</b>.</li>
@@ -316,7 +348,7 @@
           </div>
           <div class="card">
             <h3 style="margin:0 0 8px">🍎 iPhone / iPad · Safari</h3>
-            <ol style="margin:0;padding-left:20px;color:#d4d4d8">
+            <ol style="margin:0;padding-left:20px;color:var(--text2)">
               <li>Installe l’app gratuite <b>Userscripts</b> (App Store).</li>
               <li>Réglages → Safari → Extensions → <b>Userscripts</b> : active-la pour poseidon-scans.net.</li>
               <li>Ouvre <a href="https://github.com/TeddySbot/poseidon/releases/latest/download/aquaman-perso.user.js">aquaman-perso.user.js</a> dans Safari → icône Userscripts → <b>Installer</b>.</li>
@@ -330,10 +362,10 @@
       <section>
         <h2>Relier tes appareils</h2>
         <div class="card">
-          <p style="margin:0 0 10px;color:#d4d4d8">La <b>garantie anti-malchance</b> et tes <b>séries favorites</b> peuvent être les mêmes sur ton PC, ton téléphone et même ton serveur. Il n’y a aucun serveur à installer : tout passe par un <b>Gist privé de ton compte GitHub</b>.</p>
-          <ol style="margin:0;padding-left:20px;color:#d4d4d8">
+          <p style="margin:0 0 10px;color:var(--text2)">La <b>garantie anti-malchance</b> et tes <b>séries favorites</b> peuvent être les mêmes sur ton PC, ton téléphone et même ton serveur. Il n’y a aucun serveur à installer : tout passe par un <b>Gist privé de ton compte GitHub</b>.</p>
+          <ol style="margin:0;padding-left:20px;color:var(--text2)">
             <li>GitHub → Settings → Developer settings → <b>Fine-grained token</b>, avec seulement <b>Account permissions → Gists : Read and write</b>.</li>
-            <li>PC : fenêtre d’Aquaman → Accueil → <b>Synchro entre appareils</b> → colle le jeton → <b>Relier</b>.</li>
+            <li>PC : fenêtre de Celestial → <b>⚙ Réglages</b> → <b>Synchro entre appareils</b> → colle le jeton → <b>Relier</b>.</li>
             <li>Téléphone : <b>Plus → Réglages</b> → colle le même jeton → <b>Relier</b>.</li>
             <li>Un script ouvre tes boosters sur un serveur ? Ajoute-lui <a href="https://github.com/TeddySbot/poseidon/blob/main/tools/README.md">aquaman_sync.py</a> (une ligne) : ses ouvertures comptent aussi.</li>
           </ol>
@@ -343,6 +375,9 @@
       <section>
         <h2>Ce que ça ajoute</h2>
         <div class="grid">
+          <div class="feat new"><div class="ic">✦</div><b>Tableau de bord</b><span>Ta collection en %, tes Perles, tes boosters à ouvrir et l’état de chaque outil, dès l’ouverture de la fenêtre.</span></div>
+          <div class="feat new"><div class="ic">📈</div><b>Ma progression, Mes doubles</b><span>Avancement par série et par rareté, exemplaires en trop, valeur de recyclage, mise en vente des doubles après ta validation.</span></div>
+          <div class="feat new"><div class="ic">🧩</div><b>Compléter ma collection</b><span>Trouve les joueurs qui ont en double les cartes qui te manquent et prépare des échanges équilibrés.</span></div>
           <div class="feat new"><div class="ic">🔔</div><b>Alertes Marché</b><span>Une notification Windows dès qu’une carte de ta liste est en vente (prix max, rareté). Elle reste affichée jusqu’à la fin de la vente. Rien n’est acheté à ta place.</span></div>
           <div class="feat new"><div class="ic">🤖</div><b>Vente auto</b><span>Met en vente tes doublons Communes, Rares et Épiques recherchés, au bon prix, avec un plancher par rareté. Elle démarre en mode Simulation.</span></div>
           <div class="feat new"><div class="ic">📊</div><b>Statistiques</b><span>Perles rapportées par la vente auto, graphique sur 14 jours, historique, export CSV.</span></div>
@@ -360,11 +395,11 @@
         <h2>Questions</h2>
         <details>
           <summary>Comment se font les mises à jour ?</summary>
-          <p>Toutes les 6 h, l’extension regarde sur GitHub si une nouvelle version existe. Si oui, une notification et un bandeau te préviennent. Rien ne s’installe tout seul : télécharge le nouveau zip, remplace le contenu du dossier, puis clique sur ↻ sous Aquaman dans <code>chrome://extensions</code> (ou <code>git pull</code>, puis ↻). Tes réglages et tes listes sont gardés.</p>
+          <p>Toutes les 6 h, l’extension regarde sur GitHub si une nouvelle version existe. Si oui, une pastille dorée apparaît dans la fenêtre : ⚙ Réglages → <b>Mettre à jour</b> (après <code>installer-mises-a-jour.bat</code>, une seule fois). Rien ne s’installe tout seul. Sans l’assistant : télécharge le nouveau zip, remplace le contenu du dossier, puis clique sur ↻ sous Aquaman (perso) dans <code>chrome://extensions</code> (ou <code>git pull</code>, puis ↻). Tes réglages et tes listes sont gardés.</p>
         </details>
         <details>
           <summary>Quelles données sont envoyées ?</summary>
-          <p>Aucune, à personne. L’extension lit le jeu avec ta session sur poseidon-scans.net, comme le site lui-même. Tes listes, statistiques et réglages restent sur ton PC. Le seul autre contact est GitHub : il sert à lire le numéro de la dernière version et, si tu l’actives, à ta synchro dans ton propre Gist privé. Cette version est l’Aquaman de A‑Finch13 débarrassé de son serveur et de sa télémétrie.</p>
+          <p>Aucune, à personne. L’extension lit le jeu avec ta session sur poseidon-scans.net, comme le site lui-même. Tes listes, statistiques et réglages restent sur ton PC. Le seul autre contact est GitHub : il sert à lire le numéro de la dernière version et, si tu l’actives, à ta synchro dans ton propre Gist privé. Celestial est l’Aquaman de A‑Finch13 débarrassé de son serveur et de sa télémétrie.</p>
         </details>
         <details>
           <summary>C’est autorisé par le site ?</summary>
@@ -386,7 +421,7 @@
 
       <footer>
         Extension non officielle, sans lien avec l’équipe de Poseidon Scans.<br />
-        <a href="https://github.com/TeddySbot/poseidon">Code sur GitHub</a> · <a href="https://github.com/TeddySbot/poseidon/issues">Signaler un problème</a> · Aquaman © 2026 A‑Finch13, licence MIT · Alertes et Vente auto par Teddy
+        <a href="https://github.com/TeddySbot/poseidon">Code sur GitHub</a> · <a href="https://github.com/TeddySbot/poseidon/issues">Signaler un problème</a> · Celestial par Teddy, d’après Aquaman © 2026 A‑Finch13 (licence MIT) · Polices Inter et Space Grotesk (OFL)
       </footer>
     </div>
   </body>

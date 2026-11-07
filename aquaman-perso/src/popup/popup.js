@@ -7,12 +7,17 @@ const $ = (s) => document.querySelector(s);
 // ---------- onglets (onglet retenu entre deux ouvertures) ----------
 export function showTab(t) {
   document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === t));
-  for (const p of ['home', 'alertes', 'vente']) $(`#pane-${p}`).hidden = p !== t;
+  for (const p of ['home', 'alertes', 'vente', 'reglages']) $(`#pane-${p}`).hidden = p !== t;
   try {
     localStorage.setItem('aqm-tab', t);
   } catch {}
 }
 document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
+// Lignes de l'accueil (modules) et pastille de mise à jour : ouvrent un onglet.
+document.addEventListener('click', (e) => {
+  const go = e.target.closest('[data-goto]');
+  if (go) showTab(go.dataset.goto);
+});
 try {
   const t = localStorage.getItem('aqm-tab');
   if (t) showTab(t);
@@ -58,10 +63,12 @@ async function bindSettings() {
 async function bindSite() {
   const box = $('#siteToggle');
   const info = $('#siteInfo');
-  const say = (on) => (info.textContent = on ? 'Activé : panneaux et outils de Celestial affichés sur le jeu.' : 'Coupé : le site s’affiche normalement. Vente auto et Alertes continuent.');
+  const say = (on) => (info.textContent = on ? 'Boutons et infos ajoutés au jeu' : 'Coupé : le site s’affiche normalement');
   const r = await chrome.runtime.sendMessage({ type: 'site-get' }).catch(() => null);
   box.checked = r?.enabled !== false;
+  const dot = () => ($('#m-site-dot').className = 'cel-dot' + (box.checked ? ' on' : ''));
   say(box.checked);
+  dot();
   box.addEventListener('change', async () => {
     box.disabled = true;
     const res = await chrome.runtime.sendMessage({ type: 'site-set', enabled: box.checked }).catch((e) => ({ error: e.message }));
@@ -70,18 +77,20 @@ async function bindSite() {
       box.checked = !box.checked;
       info.textContent = 'Erreur : ' + res.error;
     } else say(box.checked);
+    dot();
   });
 }
 
 // ---------- boosters ----------
 async function renderStatus() {
   const { boostersPending } = await chrome.storage.local.get('boostersPending');
+  $('#m-boost-dot').className = 'cel-dot' + (boostersPending > 0 ? ' wait' : boostersPending === -1 ? ' err' : '');
   $('#status').textContent =
     boostersPending === -1
-      ? `Connecte-toi sur ${ORIGIN.replace('https://', '')} pour voir tes boosters.`
+      ? `Connecte-toi sur ${ORIGIN.replace('https://', '')}`
       : boostersPending > 0
-        ? `${boostersPending} booster${boostersPending === 1 ? '' : 's'} à ouvrir sur l’accueil du jeu.`
-        : 'Aucun booster à ouvrir pour le moment.';
+        ? `${boostersPending} booster${boostersPending === 1 ? '' : 's'} à ouvrir`
+        : 'Aucun booster à ouvrir';
 }
 
 // ---------- mises à jour ----------
@@ -90,7 +99,11 @@ const ago = (t) => (t ? new Date(t).toLocaleString('fr-FR', { day: '2-digit', mo
 async function renderUpdate() {
   const { updateState: st } = await chrome.storage.local.get('updateState');
   $('#update').hidden = !st?.update;
-  if (st?.update) $('#update-version').textContent = st.update.version;
+  $('#updPill').hidden = !st?.update;
+  if (st?.update) {
+    $('#update-version').textContent = st.update.version;
+    $('#updPill').textContent = `v${st.update.version} dispo`;
+  }
   const info = $('#updateInfo');
   info.style.color = st?.error ? 'var(--bad)' : '';
   info.textContent = st?.error
@@ -216,7 +229,41 @@ $('#syncSave').addEventListener('click', async () => {
   if (res?.error) $('#syncInfo').prepend(el('p', { style: 'color: var(--bad)' }, res.error));
 });
 
+// ---------- accueil : collection et Perles ----------
+// Chiffres de « Ma progression » (déjà en mémoire), rafraîchis par une seule lecture de /me à l'ouverture.
+const fmt = (n) => Number(n).toLocaleString('fr-FR');
+async function renderHome() {
+  const { 'progression:view': view } = await chrome.storage.local.get('progression:view');
+  const paint = (owned, total, perles) => {
+    if (total) {
+      const pct = Math.floor((owned / total) * 100);
+      $('#h-pct').textContent = pct;
+      $('#h-bar').style.width = (owned / total) * 100 + '%';
+      $('#h-owned').textContent = `${fmt(owned)} / ${fmt(total)} cartes`;
+      const miss = total - owned;
+      $('#h-missing').textContent = miss > 0 ? `${fmt(miss)} manquante${miss > 1 ? 's' : ''}` : 'Complète !';
+    }
+    if (perles != null) $('#h-perles').textContent = fmt(perles);
+  };
+  if (view) {
+    paint(view.owned, view.total, view.perles);
+    if (view.dupCards) {
+      $('#h-dups').textContent = `${fmt(view.dupCards)} cartes`;
+      $('#h-dups').classList.add('gold');
+    }
+    if (view.seriesCount) $('#h-series').textContent = `${view.complete ?? 0}/${view.seriesCount} séries`;
+  }
+  try {
+    const r = await fetch(`${ORIGIN}/api-game/v1/me`, { credentials: 'include' });
+    if (r.ok) {
+      const me = await r.json();
+      paint(me.owned, me.total, me.perles);
+    }
+  } catch {}
+}
+
 $('#version').textContent = chrome.runtime.getManifest().version;
+renderHome();
 renderSync();
 bindSite();
 bindSettings();

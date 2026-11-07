@@ -1,0 +1,268 @@
+/* Celestial : base de style commune à la fenêtre (src/popup) et aux pages (src/pages).
+   Une seule source pour les couleurs, polices, rayons et composants de base.
+   Polices embarquées (aucun appel réseau) : Inter et Space Grotesk, OFL (voir fonts/OFL.txt).
+   Les ajouts sur le site (src/content/content.css) gardent leurs propres règles : content.css est recopié
+   dans le script téléphone, qui n'a pas accès aux fichiers de l'extension (donc ni polices ni @import). */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('fonts/inter.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('fonts/space-grotesk.woff2') format('woff2');
+}
+
+:root {
+  color-scheme: dark;
+
+  /* fonds */
+  --bg: #0b1022; /* bleu nuit */
+  --bg-deep: #070b18;
+  --card: #121a33;
+  --card2: #18223f;
+  --card3: #1e2748;
+  --line: rgba(148, 163, 255, 0.12);
+  --line2: rgba(148, 163, 255, 0.22);
+
+  /* texte */
+  --text: #eef0ff;
+  --text2: #c3c9e6;
+  --muted: #9aa3c7;
+  --faint: #6b74a0;
+
+  /* accents : violet = actions, or = Perles et bonnes affaires */
+  --accent: #a78bfa;
+  --accent-soft: #c4b5fd;
+  --accent-bg: #1c1640;
+  --accent-bg2: #2a2350;
+  --action: #7c3aed;
+  --action-hi: #8b5cf6;
+  --gold: #f5c76b;
+  --gold-ink: #1a1305;
+
+  /* états */
+  --ok: #34d399;
+  --ok-soft: #86efac;
+  --bad: #f87171;
+  --bad-soft: #fecaca;
+  --warn: #fbbf24;
+  --warn-soft: #fde68a;
+
+  /* raretés (même code partout) */
+  --r-N: #a1a1aa;
+  --r-R: #60a5fa;
+  --r-SR: #c084fc;
+  --r-SSR: #fbbf24;
+  --r-UR: #fb7185;
+  --r-SEC: #67e8f9;
+  --r-N-ink: #0b1022;
+  --r-R-ink: #071430;
+  --r-SR-ink: #1d0a2e;
+  --r-SSR-ink: #1a1305;
+  --r-UR-ink: #2a0a12;
+  --r-SEC-ink: #071a1f;
+  --sec-iris: linear-gradient(135deg, #67e8f9, #a78bfa, #f472b6, #fbbf24);
+
+  /* forme */
+  --radius-s: 8px;
+  --radius: 12px;
+  --radius-l: 16px;
+  --font: 'Inter', 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-title: 'Space Grotesk', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.45 var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+a {
+  color: var(--accent-soft);
+  text-decoration: none;
+}
+a:hover {
+  color: #ddd6fe;
+}
+[hidden] {
+  display: none !important;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.num,
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- titres ---------- */
+.cel-title {
+  font-family: var(--font-title);
+  font-weight: 700;
+  letter-spacing: 0.1px;
+}
+.cel-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- logo (étoile) ---------- */
+.cel-logo {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 11px;
+  background: var(--accent-bg);
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  display: grid;
+  place-items: center;
+}
+.cel-logo svg {
+  width: 21px;
+  height: 21px;
+}
+.cel-logo img {
+  width: 74%;
+  height: 74%;
+  object-fit: contain;
+}
+
+/* ---------- surfaces ---------- */
+.cel-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+}
+
+/* ---------- boutons ---------- */
+.cel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line2);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease), filter 0.15s;
+}
+.cel-btn:hover {
+  background: rgba(148, 163, 255, 0.08);
+}
+.cel-btn.main {
+  border-color: transparent;
+  background: var(--action);
+  color: #fff;
+}
+.cel-btn.main:hover {
+  background: var(--action-hi);
+}
+.cel-btn.gold {
+  border-color: transparent;
+  background: var(--gold);
+  color: var(--gold-ink);
+}
+.cel-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ---------- pastilles de rareté ---------- */
+.cel-rar {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+.cel-rar.N { background: var(--r-N); color: var(--r-N-ink); }
+.cel-rar.R { background: var(--r-R); color: var(--r-R-ink); }
+.cel-rar.SR { background: var(--r-SR); color: var(--r-SR-ink); }
+.cel-rar.SSR { background: var(--r-SSR); color: var(--r-SSR-ink); }
+.cel-rar.UR { background: var(--r-UR); color: var(--r-UR-ink); }
+.cel-rar.SEC { background: var(--r-SEC); color: var(--r-SEC-ink); }
+
+/* barre fine de couleur à gauche d'une ligne */
+.cel-strip {
+  width: 4px;
+  align-self: stretch;
+  min-height: 24px;
+  flex: none;
+  border-radius: 2px;
+  background: var(--line2);
+}
+.cel-strip.N { background: var(--r-N); }
+.cel-strip.R { background: var(--r-R); }
+.cel-strip.SR { background: var(--r-SR); }
+.cel-strip.SSR { background: var(--r-SSR); }
+.cel-strip.UR { background: var(--r-UR); }
+.cel-strip.SEC { background: var(--sec-iris); }
+
+/* ---------- voyant ---------- */
+.cel-dot {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: #3b4466;
+}
+.cel-dot.on {
+  background: var(--ok);
+  box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.15);
+}
+.cel-dot.wait {
+  background: var(--warn);
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.15);
+}
+.cel-dot.err {
+  background: var(--bad);
+  box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.15);
+}
+
+/* ---------- animations ---------- */
+@keyframes cel-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* barres de défilement discrètes */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2b3560 transparent;
+}
