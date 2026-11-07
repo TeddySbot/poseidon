@@ -60,7 +60,7 @@ export const SETTINGS = [
     icon: '🔔',
     items: [
       ['notifyBoosters', 'Nouveaux boosters', 'Une notification quand des boosters t’attendent', 'extension'],
-      ['notifyUpdated', 'Nouveautés', 'Ce qui a changé, après une mise à jour d’Aquaman']
+      ['notifyUpdated', 'Nouveautés', 'Ce qui a changé, après une mise à jour de Celestial']
     ]
   },
   {
@@ -204,7 +204,7 @@ export function myId() {
       } catch {}
     }
     const id = ids.find((x) => typeof x === 'string' && x);
-    if (!id) throw new ApiError(401, 'unauthorized', 'Connecte-toi au site pour utiliser Aquaman.');
+    if (!id) throw new ApiError(401, 'unauthorized', 'Connecte-toi au site pour utiliser Celestial.');
     return id;
   });
 }

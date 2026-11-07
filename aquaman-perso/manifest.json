@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Aquaman (perso)",
-  "short_name": "Aquaman perso",
-  "version": "1.8.1",
-  "description": "Compagnon Poseidon Scans : Aquaman nettoyé (sans serveur externe) + Alertes Marché + Vente auto + Compléter ma collection + Ma progression.",
+  "short_name": "Celestial",
+  "version": "2.0.0",
+  "description": "Celestial, compagnon Poseidon Scans : Aquaman nettoyé (sans serveur externe) + Alertes Marché + Vente auto + Compléter ma collection + Ma progression + Mes doubles.",
   "author": "Teddy (Aquaman d'après A-Finch13, MIT)",
   "icons": {
     "16": "icons/icon16.png",
@@ -12,7 +12,7 @@
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_title": "Aquaman (perso)",
+    "default_title": "Celestial",
     "default_popup": "src/popup/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
