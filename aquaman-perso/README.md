@@ -1,4 +1,4 @@
-# Aquaman (perso) — v1.8.0
+# Aquaman (perso) — v1.9.0
 
 Guide d'installation complet : voir le [README du dépôt](../README.md).
 
@@ -10,6 +10,7 @@ Guide d'installation complet : voir le [README du dépôt](../README.md).
 | Alertes Marché | `src/modules/alertes.js`, `src/popup/popup-alertes.js` | « Poseidon – Alertes Marché » 1.1.0 |
 | Vente auto | `src/modules/vente.js`, `vente-logic.js`, `src/popup/popup-vente.js`, `src/pages/stats.*` | « Poseidon – Vente auto » 1.5.1 |
 | Ma progression | `src/modules/progression.js`, `src/pages/progression.*`, `src/lib/gameapi.js` | nouveau (1.6.0) |
+| Mes doubles | `src/modules/doubles.js`, `src/pages/doubles.*`, `src/lib/sitewrite.js` | nouveau (1.9.0) |
 | Compléter ma collection | `src/modules/completer.js`, `completer-logic.js`, `src/pages/completer.*` | nouveau (1.5.0) |
 | Fenêtre commune | `src/popup/popup.html`, `popup.css`, `popup.js` | nouvelle, au style Aquaman |
 | Service de fond | `src/background.js`, `src/lib/badge.js`, `src/lib/store.js`, `src/lib/update.js` | nouveau |
@@ -22,6 +23,22 @@ Guide d'installation complet : voir le [README du dépôt](../README.md).
 - **Relevé des beaux tirages chaque minute** en arrière-plan, et lecture automatique des collections des autres joueurs.
 - Permission `browsingData`.
 - Réglages de partage : forcés à « non » dans le code.
+
+## Nouveau en 1.9.0 : Mes doubles
+
+- **Page « Mes doubles »** (`src/pages/doubles.*`) : exemplaires en trop (tout sauf 1 par carte), cartes en double,
+  valeur de recyclage, détail par rareté, liste filtrable. Compté depuis le catalogue de « Ma progression »
+  (`/cards?manga=`, champ `owned`), donc sans la limite de 2000 exemplaires de `/copies` dont souffre la fenêtre
+  « Recycler » du jeu. « Tout recompter » relit toutes les séries (~5 min).
+- **Vente des doubles** (`src/modules/doubles.js`) : « Préparer » relit les exemplaires (`/cards/{id}`) et les prix
+  (`/market/cards/{id}`) de 80 cartes au plus ; prix conseillé = vente la moins chère des autres − 1, jamais sous
+  70 % de la référence ni sous la meilleure offre d'achat, dans les limites du site. Le plus petit #serial est
+  toujours gardé, les plus gros partent d'abord ; jamais d'exemplaire bloqué, lié, protégé ou déjà en vente.
+  Envoi seulement après « Mettre en vente » puis « Confirmer », depuis un onglet du site (`src/lib/sitewrite.js`,
+  25 écritures / 31 s). Le jeu limite à 50 ordres en cours : le reste attend dans une file retentée toutes les 2 min.
+- **Ma progression** : tuile « Doubles ».
+- **Interrupteur « Aquaman sur le site »** (`src/lib/site.js`, 1.8.1) : les scripts de page sont enregistrés par
+  `chrome.scripting` au lieu du manifeste, pour pouvoir les couper sans arrêter le reste.
 
 ## Nouveau en 1.7.0 : mise à jour en un clic
 
