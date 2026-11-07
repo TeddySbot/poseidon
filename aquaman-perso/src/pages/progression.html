@@ -5,7 +5,7 @@
 <title>Ma progression · Aquaman</title>
 <link rel="icon" href="../../icons/icon48.png">
 <style>
-  :root { color-scheme:dark; --bg:#0b0b0d; --panel:#18181b; --panel2:#202024; --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14); --txt:#f4f4f5; --mut:#a1a1aa; --acc:#60a5fa; --blue:#2563eb; --ok:#22c55e; --bad:#f87171; --sim:#fbbf24; }
+  :root { color-scheme:dark; --bg:#0b0b0d; --panel:#18181b; --panel2:#202024; --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14); --txt:#f4f4f5; --mut:#a1a1aa; --acc:#a78bfa; --blue:#7c3aed; --ok:#22c55e; --bad:#f87171; --sim:#fbbf24; }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--txt); font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
   a { color:var(--acc); text-decoration:none; } a:hover { text-decoration:underline; }
@@ -29,8 +29,8 @@
   .tile .lab { color:var(--mut); font-size:12px; font-weight:600; }
   .tile .val { font-size:28px; font-weight:900; font-variant-numeric:tabular-nums; margin-top:2px; }
   .tile .sub { color:var(--mut); font-size:12px; margin-top:2px; }
-  .tile.hero { background:linear-gradient(135deg, rgba(37,99,235,.22), rgba(24,24,27,1) 60%); border-color:rgba(96,165,250,.3); }
-  .tile.hero .val { color:#bfdbfe; }
+  .tile.hero { background:linear-gradient(135deg, rgba(124,58,237,.22), rgba(24,24,27,1) 60%); border-color:rgba(167,139,250,.3); }
+  .tile.hero .val { color:#ddd6fe; }
   .bar { height:8px; border-radius:99px; background:var(--panel2); overflow:hidden; min-width:90px; }
   .bar i { display:block; height:100%; background:var(--blue); border-radius:99px; }
   .bar.done i { background:var(--ok); }
@@ -70,6 +70,7 @@
     <div class="t"><div class="kick">Aquaman · Collection</div><h1>Ma progression</h1></div>
     <button id="refresh">Actualiser</button>
     <button id="full" class="ghost" title="Relit toutes les séries, même celles qui n’ont pas bougé">Tout relire</button>
+    <button id="doubles" class="ghost">Mes doubles →</button>
     <button id="completer" class="ghost">Compléter ma collection →</button>
     <div class="statusline" id="status"></div>
   </header>
@@ -77,6 +78,7 @@
   <div class="tiles">
     <div class="tile hero"><div class="lab">Collection</div><div class="val" id="kPct">–</div><div class="sub" id="kPctSub"></div></div>
     <div class="tile"><div class="lab">Cartes manquantes</div><div class="val" id="kMiss">–</div><div class="sub" id="kMissSub"></div></div>
+    <div class="tile" id="dupTile" style="cursor:pointer" title="Voir et vendre mes doubles"><div class="lab">Doubles →</div><div class="val" id="kDup">–</div><div class="sub" id="kDupSub"></div></div>
     <div class="tile"><div class="lab">Séries complètes</div><div class="val" id="kSer">–</div><div class="sub" id="kSerSub"></div></div>
     <div class="tile"><div class="lab">Cartes d’événement</div><div class="val" id="kEv">–</div><div class="sub" id="kEvSub"></div></div>
     <div class="tile"><div class="lab">Progression</div><div class="val" id="kGain">–</div><div class="sub" id="kGainSub"></div></div>

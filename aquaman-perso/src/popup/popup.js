@@ -34,6 +34,11 @@ document.getElementById('openCompleter')?.addEventListener('click', () => {
   window.close();
 });
 
+document.getElementById('openDoubles')?.addEventListener('click', () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('src/pages/doubles.html') });
+  window.close();
+});
+
 document.getElementById('openProgression')?.addEventListener('click', () => {
   chrome.tabs.create({ url: chrome.runtime.getURL('src/pages/progression.html') });
   window.close();
@@ -46,6 +51,26 @@ async function bindSettings() {
     box.checked = !!settings[box.dataset.setting];
     box.addEventListener('change', () => setSettings({ [box.dataset.setting]: box.checked }));
   }
+}
+
+// ---------- Aquaman sur le site (interrupteur) ----------
+// Coupé : plus rien n'est ajouté aux pages du jeu ; Vente auto, Alertes et le reste continuent en arrière-plan.
+async function bindSite() {
+  const box = $('#siteToggle');
+  const info = $('#siteInfo');
+  const say = (on) => (info.textContent = on ? 'Activé : panneaux et outils d’Aquaman affichés sur le jeu.' : 'Coupé : le site s’affiche normalement. Vente auto et Alertes continuent.');
+  const r = await chrome.runtime.sendMessage({ type: 'site-get' }).catch(() => null);
+  box.checked = r?.enabled !== false;
+  say(box.checked);
+  box.addEventListener('change', async () => {
+    box.disabled = true;
+    const res = await chrome.runtime.sendMessage({ type: 'site-set', enabled: box.checked }).catch((e) => ({ error: e.message }));
+    box.disabled = false;
+    if (res?.error) {
+      box.checked = !box.checked;
+      info.textContent = 'Erreur : ' + res.error;
+    } else say(box.checked);
+  });
 }
 
 // ---------- boosters ----------
@@ -193,6 +218,7 @@ $('#syncSave').addEventListener('click', async () => {
 
 $('#version').textContent = chrome.runtime.getManifest().version;
 renderSync();
+bindSite();
 bindSettings();
 renderStatus();
 renderUpdate();

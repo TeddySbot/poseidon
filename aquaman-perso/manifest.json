@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Aquaman (perso)",
   "short_name": "Aquaman perso",
-  "version": "1.7.0",
+  "version": "1.8.1",
   "description": "Compagnon Poseidon Scans : Aquaman nettoyé (sans serveur externe) + Alertes Marché + Vente auto + Compléter ma collection + Ma progression.",
   "author": "Teddy (Aquaman d'après A-Finch13, MIT)",
   "icons": {
@@ -37,30 +37,5 @@
     "https://poseidon-scans.net/*",
     "https://api.github.com/*",
     "https://aquaman-relay.finch-arhold-git.workers.dev/*"
-  ],
-  "content_scripts": [
-    {
-      "matches": [
-        "https://poseidon-scans.net/*"
-      ],
-      "js": [
-        "src/content/inject.js"
-      ],
-      "run_at": "document_start",
-      "world": "MAIN"
-    },
-    {
-      "matches": [
-        "https://poseidon-scans.net/*"
-      ],
-      "js": [
-        "src/content/tutorial.js",
-        "src/content/content.js"
-      ],
-      "css": [
-        "src/content/content.css"
-      ],
-      "run_at": "document_idle"
-    }
   ]
 }

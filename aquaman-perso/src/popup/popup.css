@@ -9,8 +9,8 @@
   --line2: rgba(255, 255, 255, 0.14);
   --text: #f4f4f5;
   --muted: #a1a1aa;
-  --accent: #60a5fa;
-  --blue: #2563eb;
+  --accent: #a78bfa;
+  --blue: #7c3aed;
   --ok: #22c55e;
   --bad: #f87171;
   --warn: #fbbf24;
@@ -426,7 +426,7 @@ h2.gap {
   display: block;
   height: 100%;
   width: 0;
-  background: linear-gradient(90deg, #2563eb, #60a5fa);
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
   transition: width 0.4s;
 }
 .bar-lab {

@@ -45,6 +45,8 @@ function render() {
   $('kMiss').textContent = fmt(V.total - V.owned);
   const near = V.series.filter((s) => s.total > s.owned && s.total - s.owned <= 2).length;
   $('kMissSub').textContent = near ? `${near} série(s) à 1 ou 2 cartes de la fin` : '';
+  $('kDup').textContent = V.dupCopies != null ? fmt(V.dupCopies) : '–';
+  $('kDupSub').textContent = V.dupCards != null ? `exemplaires en trop · ${fmt(V.dupCards)} carte(s) en double${V.partial ? ' (lecture incomplète)' : ''}` : 'clique sur « Actualiser »';
   $('kSer').textContent = `${fmt(V.complete)} / ${fmt(V.seriesCount)}`;
   $('kSerSub').textContent = p1(V.complete, V.seriesCount) + ' des séries';
   $('kEv').textContent = `${fmt(V.eventOwned)} / ${fmt(V.eventTotal)}`;
@@ -100,8 +102,8 @@ function renderChart() {
     <line x1="${pad}" x2="${W - pad}" y1="${y(min)}" y2="${y(min)}" stroke="rgba(255,255,255,.08)"/>
     <line x1="${pad}" x2="${W - pad}" y1="${y(max)}" y2="${y(max)}" stroke="rgba(255,255,255,.08)"/>
     <text x="4" y="${y(max) + 4}" fill="#a1a1aa" font-size="12">${max}</text><text x="4" y="${y(min) + 4}" fill="#a1a1aa" font-size="12">${min}</text>
-    <path d="${path}" fill="none" stroke="#60a5fa" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
-    ${pts.map((p, i) => `<circle cx="${x(i)}" cy="${y(p.owned)}" r="3" fill="#60a5fa"><title>${lab(p)} : ${p.owned} cartes</title></circle>`).join('')}
+    <path d="${path}" fill="none" stroke="#a78bfa" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
+    ${pts.map((p, i) => `<circle cx="${x(i)}" cy="${y(p.owned)}" r="3" fill="#a78bfa"><title>${lab(p)} : ${p.owned} cartes</title></circle>`).join('')}
     <text x="${pad}" y="${Hh - 4}" fill="#a1a1aa" font-size="12">${lab(pts[0])}</text>
     <text x="${W - pad}" y="${Hh - 4}" fill="#a1a1aa" font-size="12" text-anchor="end">${lab(pts.at(-1))}</text></svg>`;
 }
@@ -160,6 +162,8 @@ for (const r of RARITY_ORDER) $('r').insertAdjacentHTML('beforeend', `<option va
 for (const id of ['q', 'f', 'r', 'sort']) $(id).addEventListener(id === 'q' ? 'input' : 'change', () => V && renderSeries());
 $('refresh').addEventListener('click', () => send(ST.running ? 'stop' : 'refresh'));
 $('full').addEventListener('click', () => send('full'));
+$('doubles').addEventListener('click', () => (location.href = 'doubles.html'));
+$('dupTile').addEventListener('click', () => (location.href = 'doubles.html'));
 $('completer').addEventListener('click', () => (location.href = 'completer.html'));
 $('series').addEventListener('click', async (e) => {
   const row = e.target.closest('tr.srow');
